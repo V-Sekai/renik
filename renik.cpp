@@ -31,6 +31,7 @@
 #include "renik.h"
 
 #include "core/math/quaternion.h"
+#include "math/qcp.h"
 #include "scene/3d/marker_3d.h"
 
 #ifndef _3D_DISABLED
@@ -3374,7 +3375,7 @@ Vector<Transform3D> RenIK::compute_global_transforms(const Vector<RenIKChain::Jo
 	return global_transforms;
 }
 
-void RenIK::compute_rest_and_target_positions(const Vector<Transform3D> &p_global_transforms, const Transform3D &p_target, const Vector3 &p_priority, Vector<Vector3> &p_reference_positions, Vector<Vector3> &p_target_positions, Vector<real_t> &r_weights) {
+void RenIK::compute_rest_and_target_positions(const Vector<Transform3D> &p_global_transforms, const Transform3D &p_target, const Vector3 &p_priority, Vector<Vector3> &p_reference_positions, Vector<Vector3> &p_target_positions, Vector<double> &r_weights) {
 	for (int joint_i = 0; joint_i < p_global_transforms.size(); joint_i++) {
 		Transform3D bone_direction_global_transform = p_global_transforms[joint_i];
 		real_t pin_weight = r_weights[joint_i];
@@ -3388,7 +3389,6 @@ void RenIK::compute_rest_and_target_positions(const Vector<Transform3D> &p_globa
 		p_reference_positions.write[rest_index] = p_target.origin - bone_direction_global_transform.origin;
 		rest_index++;
 
-		double epsilon = 1e-6;
 		double scale_by = pin_weight;
 
 		Vector3 target_global_space = p_target.origin;
@@ -3396,18 +3396,16 @@ void RenIK::compute_rest_and_target_positions(const Vector<Transform3D> &p_globa
 			target_global_space = bone_direction_global_transform.xform(p_target.origin);
 		}
 		double distance = target_global_space.distance_to(bone_direction_global_transform.origin);
-
-		scale_by *= 1.0 / (distance * distance + epsilon);
+		scale_by = MAX(1.0, distance);
 
 		for (int axis_i = Vector3::AXIS_X; axis_i <= Vector3::AXIS_Z; ++axis_i) {
 			if (p_priority[axis_i] > 0.0) {
-				real_t w = r_weights[rest_index];
 				Vector3 column = p_target.basis.get_column(axis_i);
 				p_reference_positions.write[rest_index] = bone_direction_global_transform.affine_inverse().xform((column + p_target.origin) - bone_direction_global_transform.origin);
-				p_reference_positions.write[rest_index] *= Vector3(w, w, w) * scale_by;
+				p_reference_positions.write[rest_index] *= scale_by;
 				rest_index++;
 				p_reference_positions.write[rest_index] = bone_direction_global_transform.affine_inverse().xform((p_target.origin - column) - bone_direction_global_transform.origin);
-				p_reference_positions.write[rest_index] *= Vector3(w, w, w) * scale_by;
+				p_reference_positions.write[rest_index] *= scale_by;
 				rest_index++;
 			}
 		}
@@ -3418,19 +3416,15 @@ void RenIK::compute_rest_and_target_positions(const Vector<Transform3D> &p_globa
 
 		scale_by = pin_weight;
 
-		Vector3 target_local = bone_direction_global_transform.affine_inverse().xform(target_global_space);
-		distance = target_local.distance_to(bone_direction_global_transform.origin);
-
-		scale_by *= 1.0 / (distance * distance + epsilon);
-
 		for (int axis_j = Vector3::AXIS_X; axis_j <= Vector3::AXIS_Z; ++axis_j) {
 			if (p_priority[axis_j] > 0.0) {
+				real_t w = r_weights[rest_index];
 				Vector3 column = tip_basis.get_column(axis_j) * p_priority[axis_j];
 				p_target_positions.write[target_index] = bone_direction_global_transform.xform((column + p_target.origin) - bone_direction_global_transform.origin);
-				p_target_positions.write[target_index] *= scale_by;
+				p_target_positions.write[target_index] *= Vector3(w, w, w);
 				target_index++;
 				p_target_positions.write[target_index] = bone_direction_global_transform.xform((p_target.origin - column) - bone_direction_global_transform.origin);
-				p_target_positions.write[target_index] *= scale_by;
+				p_target_positions.write[target_index] *= Vector3(w, w, w);
 				target_index++;
 			}
 		}
@@ -3450,7 +3444,7 @@ HashMap<BoneId, Quaternion> RenIK::solve_ik_qcp(Ref<RenIKChain> chain,
 	const Transform3D true_root = root.translated_local(joints[0].relative_prev);
 	Vector<Vector3> rest_positions;
 	Vector<Vector3> target_positions;
-	Vector<real_t> weights;
+	Vector<double> weights;
 	constexpr int TRANSFORM_TO_HEADINGS_COUNT = 7;
 	rest_positions.resize(TRANSFORM_TO_HEADINGS_COUNT * joints.size());
 	target_positions.resize(TRANSFORM_TO_HEADINGS_COUNT * joints.size());
@@ -3461,8 +3455,7 @@ HashMap<BoneId, Quaternion> RenIK::solve_ik_qcp(Ref<RenIKChain> chain,
 	Vector<Transform3D> global_transforms = compute_global_transforms(joints, root, true_root);
 
 	static constexpr double evec_prec = static_cast<double>(1E-6);
-	static constexpr double eval_prec = static_cast<double>(1E-11);
-	QCP qcp = QCP(eval_prec, evec_prec);
+	QCP qcp = QCP(evec_prec);
 
 	compute_rest_and_target_positions(global_transforms, target, priority, rest_positions, target_positions, weights);
 
