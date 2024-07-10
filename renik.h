@@ -80,20 +80,23 @@ protected:
 public:
 	Vector<Transform3D> compute_global_transforms(const Vector<RenIKChain::Joint> &joints, const Transform3D &root, const Transform3D &true_root);
 	void compute_rest_and_target_positions(const Vector<Transform3D> &p_global_transforms, const Transform3D &p_target, const Vector3 &p_priority, Vector<Vector3> &p_reference_positions, Vector<Vector3> &p_target_positions, Vector<double> &r_weights);
-	HashMap<BoneId, Basis> solve_ik_qcp(Ref<RenIKChain> chain,
+	HashMap<BoneId, Quaternion> solve_ik_qcp(Ref<RenIKChain> chain,
 			Transform3D root,
 			Transform3D target);
 	void set_setup_humanoid_bones(bool set_targets);
 	bool get_setup_humanoid_bones() const;
 	void update_ik();
 	void update_placement(float delta);
+
+	void apply_ik_map(HashMap<BoneId, Quaternion> ik_map, Transform3D global_parent,
+			Vector<BoneId> apply_order);
 	void apply_ik_map(HashMap<BoneId, Basis> ik_map, Transform3D global_parent,
 			Vector<BoneId> apply_order);
 	Vector<BoneId> bone_id_order(Ref<RenIKChain> chain);
 	Vector<BoneId> bone_id_order(Ref<RenIKLimb> limb);
 
 	Transform3D get_global_parent_pose(BoneId child,
-			HashMap<BoneId, Basis> ik_map,
+			HashMap<BoneId, Quaternion> ik_map,
 			Transform3D map_global_parent);
 
 	SpineTransforms perform_torso_ik();
