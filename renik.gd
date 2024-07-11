@@ -453,19 +453,19 @@ func update_ik () -> void:
 	if not perform_torso_ik(spine_global_transforms):
 		return
 
-	if hand_left_target_spatial:
-		perform_hand_left_ik(spine_global_transforms.leftArmParentTransform, skel_inverse * hand_left_target_spatial.global_transform)
+	if hand_left_target_spatial and hand_left_target_spatial.visible:
+		perform_hand_left_ik(spine_global_transforms.leftArmParentTransform, (skel_inverse * hand_left_target_spatial.global_transform).orthonormalized())
 
-	if hand_right_target_spatial:
-		perform_hand_right_ik(spine_global_transforms.rightArmParentTransform, skel_inverse * hand_right_target_spatial.global_transform)
+	if hand_right_target_spatial and hand_right_target_spatial.visible:
+		perform_hand_right_ik(spine_global_transforms.rightArmParentTransform, (skel_inverse * hand_right_target_spatial.global_transform).orthonormalized())
 
-	if foot_left_target_spatial:
-		perform_foot_left_ik(spine_global_transforms.hipTransform, skel_inverse * foot_left_target_spatial.global_transform)
+	if foot_left_target_spatial and foot_left_target_spatial.visible:
+		perform_foot_left_ik(spine_global_transforms.hipTransform, (skel_inverse * foot_left_target_spatial.global_transform).orthonormalized())
 	#elif foot_placement:
 	#	perform_foot_left_ik(spine_global_transforms.hipTransform, skel_inverse * placement.interpolated_left_foot)
 
-	if foot_right_target_spatial:
-		perform_foot_right_ik(spine_global_transforms.hipTransform, skel_inverse * foot_right_target_spatial.global_transform)
+	if foot_right_target_spatial and foot_right_target_spatial.visible:
+		perform_foot_right_ik(spine_global_transforms.hipTransform, (skel_inverse * foot_right_target_spatial.global_transform).orthonormalized())
 	#elif foot_placement:
 	#	perform_foot_right_ik(spine_global_transforms.hipTransform, skel_inverse * placement.interpolated_right_foot)
 
@@ -512,18 +512,18 @@ func get_global_parent_pose(child: int, ik_map: Dictionary, map_global_parent: T
 
 
 func perform_torso_ik (spine_transforms: SpineGlobalTransforms):
-	if head_target_spatial && skeleton && spine_chain.is_valid():
+	if head_target_spatial && head_target_spatial.visible && skeleton && spine_chain.is_valid():
 		var skel_inverse: Transform3D = skeleton.global_transform.affine_inverse()
-		var headGlobalTransform: Transform3D = skel_inverse * head_target_spatial.global_transform
+		var headGlobalTransform: Transform3D = (skel_inverse * head_target_spatial.global_transform).orthonormalized()
 		var hipTransform: Transform3D
 		var hip: int = spine_chain.root_bone
 		var head: int = spine_chain.leaf_bone
-		if hip_target_spatial:
-			hipTransform = hip_target_spatial.global_transform
+		if hip_target_spatial and hip_target_spatial.visible:
+			hipTransform = hip_target_spatial.global_transform.orthonormalized()
 		#else if hip_placement:
 		#	hip_target_spatial = placement.interpolated_hip
 		# FIXME: Why skeleton.get_bone_rest(hip).basis
-		var hipGlobalTransform: Transform3D = skel_inverse * hipTransform * Transform3D(skeleton.get_bone_rest(hip).basis)
+		var hipGlobalTransform: Transform3D = (skel_inverse * hipTransform).orthonormalized() * Transform3D(skeleton.get_bone_rest(hip).basis).orthonormalized()
 		var delta: Vector3 = hipGlobalTransform.origin + hipGlobalTransform.basis * (spine_chain.joints[0].relative_prev) - headGlobalTransform.origin
 		var fullLength: float = spine_chain.total_length
 		if delta.length() > fullLength:
@@ -531,7 +531,7 @@ func perform_torso_ik (spine_transforms: SpineGlobalTransforms):
 
 		var ik_map: Dictionary = solve_ifabrik(
 				spine_chain,
-				hipGlobalTransform * Transform3D(skeleton.get_bone_rest(hip).basis.inverse()),
+				hipGlobalTransform * Transform3D(skeleton.get_bone_rest(hip).basis.orthonormalized().inverse()),
 				headGlobalTransform, DEFAULT_THRESHOLD, DEFAULT_LOOP_LIMIT)
 		#skeleton.set_bone_global_pose_override(
 		#    hip, hipGlobalTransform, 1.0f, true)
@@ -574,7 +574,7 @@ func perform_torso_ik (spine_transforms: SpineGlobalTransforms):
 
 
 func perform_hand_left_ik (global_parent: Transform3D, target: Transform3D) -> void:
-	if (hand_left_target_spatial && skeleton &&
+	if (hand_left_target_spatial && hand_left_target_spatial.visible && skeleton &&
 			limb_arm_left.is_valid_in_skeleton(skeleton)):
 		var root: Transform3D = global_parent #  skeleton.global_transform * global_parent
 		var rootBone: int = skeleton.get_bone_parent(limb_arm_left.upper_id)
@@ -603,7 +603,7 @@ func perform_hand_left_ik (global_parent: Transform3D, target: Transform3D) -> v
 
 
 func perform_hand_right_ik (global_parent: Transform3D, target: Transform3D) -> void:
-	if (hand_right_target_spatial && skeleton &&
+	if (hand_right_target_spatial && hand_right_target_spatial.visible && skeleton &&
 			limb_arm_right.is_valid_in_skeleton(skeleton)):
 		var root: Transform3D = global_parent
 		var rootBone: int = skeleton.get_bone_parent(limb_arm_right.upper_id)
