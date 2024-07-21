@@ -770,13 +770,13 @@ void RenIK::_bind_methods() {
 			&RenIK::get_sideways_scaling_ease);
 	ClassDB::bind_method(D_METHOD("set_sideways_scaling_ease", "scaling_ease"),
 			&RenIK::set_sideways_scaling_ease);
-	ClassDB::bind_method(D_METHOD("setup_humanoid_bones"),
+	ClassDB::bind_method(D_METHOD("setup_humanoid_bones", "set_targets"),
 			&RenIK::setup_humanoid_bones);
 
 	ClassDB::bind_method(D_METHOD("set_setup_humanoid_bones", "set_targets"), &RenIK::set_setup_humanoid_bones);
 	ClassDB::bind_method(D_METHOD("get_setup_humanoid_bones"), &RenIK::get_setup_humanoid_bones);
 
-	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "setup_humanoid_bones"), "set_setup_humanoid_bones", "get_setup_humanoid_bones");
+	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "enable_humanoid_bones"), "set_setup_humanoid_bones", "get_setup_humanoid_bones");
 
 	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "live_preview"), "set_live_preview",
 			"get_live_preview");
