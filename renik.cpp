@@ -3502,8 +3502,10 @@ RenIK::SpineTransforms RenIK::perform_torso_ik() {
 		Transform3D hipGlobalTransform = skeleton->get_bone_global_pose(hip);
 
 		adjust_hip_transform(hipGlobalTransform, headGlobalTransform);
+
+		Transform3D hipLocalPose = skeleton->get_bone_pose(hip);
 		Transform3D correctedHipTransform = hipGlobalTransform;
-		correctedHipTransform.set_origin(-hipGlobalTransform.origin);
+		correctedHipTransform.set_origin(-hipLocalPose.origin);
 
 		HashMap<BoneId, Quaternion> ik_map = solve_ik_qcp(
 			spine_chain,
