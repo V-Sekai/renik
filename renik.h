@@ -99,7 +99,73 @@ public:
 			HashMap<BoneId, Quaternion> ik_map,
 			Transform3D map_global_parent);
 
-	SpineTransforms perform_torso_ik();
+	RenIK::SpineTransforms perform_torso_ik() {
+		if (head_target_spatial && skeleton && spine_chain->is_valid()) {
+			Transform3D skel_inverse = skeleton->get_global_transform().affine_inverse();
+			Transform3D headGlobalTransform = skel_inverse * head_target_spatial->get_global_transform();
+
+			// Use the global transform directly for the hip
+			Transform3D hipGlobalTransform = skeleton->get_bone_global_pose(hip);
+
+			adjust_hip_transform(hipGlobalTransform, headGlobalTransform);
+
+			HashMap<BoneId, Quaternion> ik_map = solve_ik_qcp(
+				spine_chain,
+				hipGlobalTransform * skeleton->get_bone_rest(hip).basis.inverse(),
+				headGlobalTransform
+			);
+
+			apply_transforms_to_skeleton(hipGlobalTransform, headGlobalTransform, ik_map);
+
+			// Calculate and return the parent bone position for the arms
+			Transform3D left_global_parent_pose = get_limb_global_parent_pose(limb_arm_left, ik_map, hipGlobalTransform);
+			Transform3D right_global_parent_pose = get_limb_global_parent_pose(limb_arm_right, ik_map, hipGlobalTransform);
+
+			return SpineTransforms(hipGlobalTransform, left_global_parent_pose, right_global_parent_pose, headGlobalTransform);
+		}
+		return SpineTransforms();
+	}
+
+	void adjust_hip_transform(Transform3D &hipGlobalTransform, const Transform3D &headGlobalTransform) {
+		Vector3 delta = hipGlobalTransform.origin +
+						hipGlobalTransform.basis.xform(spine_chain->get_joints()[0].relative_prev) -
+						headGlobalTransform.origin;
+		float fullLength = spine_chain->get_total_length();
+		if (delta.length() > fullLength) {
+			hipGlobalTransform.set_origin(
+				headGlobalTransform.origin + (delta.normalized() * fullLength) -
+				hipGlobalTransform.basis.xform(spine_chain->get_joints()[0].relative_prev)
+			);
+		}
+	}
+
+	void apply_transforms_to_skeleton(const Transform3D &hipGlobalTransform, const Transform3D &headGlobalTransform, const HashMap<BoneId, Quaternion> &ik_map) {
+		skeleton->set_bone_pose_rotation(hip, hipGlobalTransform.get_basis().get_rotation_quaternion());
+		skeleton->set_bone_pose_position(hip, hipGlobalTransform.get_origin());
+
+		apply_ik_map(ik_map, hipGlobalTransform, bone_id_order(spine_chain));
+
+		Quaternion neckQuaternion = calculate_neck_quaternion();
+		skeleton->set_bone_pose_rotation(head, neckQuaternion.inverse() * headGlobalTransform.get_basis().get_rotation_quaternion());
+	}
+
+	Quaternion calculate_neck_quaternion() {
+		Quaternion neckQuaternion = Quaternion();
+		int parent_bone = skeleton->get_bone_parent(head);
+		while (parent_bone != -1) {
+			neckQuaternion = skeleton->get_bone_pose_rotation(parent_bone) * neckQuaternion;
+			parent_bone = skeleton->get_bone_parent(parent_bone);
+		}
+		return neckQuaternion;
+	}
+
+	Transform3D get_limb_global_parent_pose(Ref<RenIKLimb> limb, const HashMap<BoneId, Quaternion> &ik_map, const Transform3D &hipGlobalTransform) {
+		if (limb != nullptr) {
+			return get_global_parent_pose(limb->upper_id, ik_map, hipGlobalTransform);
+		}
+		return Transform3D();
+	}
+
 	void perform_hand_left_ik(Transform3D global_parent, Transform3D target);
 	void perform_hand_right_ik(Transform3D global_parent, Transform3D target);
 	void perform_foot_left_ik(Transform3D global_parent, Transform3D target);
