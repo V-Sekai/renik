@@ -1322,12 +1322,12 @@ void RenIK::_notification(int p_what) {
 			spine_chain.instantiate();
 			spine_chain->init(Vector3(0, 15, -15), 0.5, 0.5, 1, 0);
 			limb_arm_left.instantiate();
-			limb_arm_left->init(0, 0, Math::deg_to_rad(80.0), 0.5, 0,
+			limb_arm_left->init(Math::deg_to_rad(115.0), 0, Math::deg_to_rad(80.0), 0.5, 0,
 					Math::deg_to_rad(-180.0), Math::deg_to_rad(45.0), 0.33,
 					Vector3(Math::deg_to_rad(15.0), 0, Math::deg_to_rad(60.0)),
 					Vector3(2.0, -1.5, -1.0));
 			limb_arm_right.instantiate();
-			limb_arm_right->init(0, 0, Math::deg_to_rad(80.0), 0.5, 0,
+			limb_arm_right->init(Math::deg_to_rad(115.0), 0, Math::deg_to_rad(80.0), 0.5, 0,
 					Math::deg_to_rad(-180.0), Math::deg_to_rad(45.0), 0.33,
 					Vector3(Math::deg_to_rad(15.0), 0, Math::deg_to_rad(-60.0)),
 					Vector3(2.0, 1.5, 1.0));
