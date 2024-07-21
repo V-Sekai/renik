@@ -98,12 +98,8 @@ public:
 	Transform3D get_global_parent_pose(BoneId child,
 			HashMap<BoneId, Quaternion> ik_map,
 			Transform3D map_global_parent);
-	RenIK::SpineTransforms perform_torso_ik();
-	void adjust_hip_transform(Transform3D &hipGlobalTransform, const Transform3D &headGlobalTransform);
-	void apply_transforms_to_skeleton(const Transform3D &hipGlobalTransform, const Transform3D &headGlobalTransform, const HashMap<BoneId, Quaternion> &ik_map);
-	Quaternion calculate_neck_quaternion();
-	Transform3D get_limb_global_parent_pose(Ref<RenIKLimb> limb, const HashMap<BoneId, Quaternion> &ik_map, const Transform3D &hipGlobalTransform);
 
+	SpineTransforms perform_torso_ik();
 	void perform_hand_left_ik(Transform3D global_parent, Transform3D target);
 	void perform_hand_right_ik(Transform3D global_parent, Transform3D target);
 	void perform_foot_left_ik(Transform3D global_parent, Transform3D target);
