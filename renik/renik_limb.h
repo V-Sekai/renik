@@ -90,12 +90,6 @@ public:
 	// STATE: We're keeping a little bit of state now... kinda goes against the design, but it makes life easier so fuck it.
 	int overflow_state =
 			0; // 0 means no twist overflow. -1 means underflow. 1 means overflow.
-
-	void init(float p_upper_twist_offset, float p_lower_twist_offset,
-			float p_roll_offset, float p_upper_limb_twist,
-			float p_lower_limb_twist, float p_twist_inflection_point_offset,
-			float p_twist_overflow, float p_target_rotation_influence,
-			Vector3 p_pole_offset, Vector3 p_target_position_influence);
 };
 
 // TODO: If I'm really ambitious and feel like implementing multi-jointed limbs.

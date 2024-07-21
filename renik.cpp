@@ -1320,25 +1320,31 @@ void RenIK::_notification(int p_what) {
 			right_shoulder_pole_offset = Vector3(Math::deg_to_rad(0.0), Math::deg_to_rad(0.0),
 					Math::deg_to_rad(-78.0));
 			spine_chain.instantiate();
-			spine_chain->init(Vector3(0, 15, -15), 0.5, 0.5, 1, 0);
+			spine_chain->init(Vector3(0.0, 15, -15), 0.5, 0.5, 1, 0);
 			limb_arm_left.instantiate();
-			limb_arm_left->init(Math::deg_to_rad(115.0), 0, Math::deg_to_rad(80.0), 0.5, 0,
-					Math::deg_to_rad(-180.0), Math::deg_to_rad(45.0), 0.33,
-					Vector3(Math::deg_to_rad(15.0), 0, Math::deg_to_rad(60.0)),
-					Vector3(2.0, -1.5, -1.0));
 			limb_arm_right.instantiate();
-			limb_arm_right->init(Math::deg_to_rad(115.0), 0, Math::deg_to_rad(80.0), 0.5, 0,
-					Math::deg_to_rad(-180.0), Math::deg_to_rad(45.0), 0.33,
-					Vector3(Math::deg_to_rad(15.0), 0, Math::deg_to_rad(-60.0)),
-					Vector3(2.0, 1.5, 1.0));
 			limb_leg_left.instantiate();
-			limb_leg_left->init(0, Math::deg_to_rad(-180.0), 0, 0.25, 0.25, 0, Math::deg_to_rad(45.0), 0.5,
-					Vector3(0, 0, Math_PI), Vector3());
 			limb_leg_right.instantiate();
-			limb_leg_right->init(0, Math::deg_to_rad(-180.0), 0, 0.25, 0.25, 0, Math::deg_to_rad(45.0), 0.5,
-					Vector3(0, 0, -Math_PI), Vector3());
-			set_leg_pole_offset(Vector3(0, 0, 180));
-			set_arm_pole_offset(Vector3(15, 0, 60));
+			set_arm_upper_twist_offset(190.0);
+			set_arm_lower_twist_offset(-60);
+			set_arm_roll_offset(270.0);
+			set_arm_upper_limb_twist(0.5);
+			set_arm_lower_limb_twist(0.25);
+			set_arm_twist_inflection_point_offset(-180.0);
+			set_arm_twist_overflow(45.0);
+			set_arm_target_rotation_influence(0.33);
+			set_arm_pole_offset(Vector3(Math::deg_to_rad(15.0), 0, Math::deg_to_rad(60.0)));
+			set_arm_target_position_influence(Vector3(2.0, -1.5, -1.0));
+			set_leg_upper_twist_offset(0);
+			set_leg_lower_twist_offset(-180.0);
+			set_leg_roll_offset(0);
+			set_leg_upper_limb_twist(0.25);
+			set_leg_lower_limb_twist(0.25);
+			set_leg_twist_inflection_point_offset(0);
+			set_leg_twist_overflow(45.0);
+			set_leg_target_rotation_influence(0.5);
+			set_leg_pole_offset(Vector3(0, 0, Math_PI));
+			set_leg_target_position_influence(Vector3());
 		} break;
 		case NOTIFICATION_READY: {
 			_initialize();
