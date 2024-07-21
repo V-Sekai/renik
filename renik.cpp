@@ -1539,24 +1539,18 @@ RenIK::SpineTransforms RenIK::perform_torso_ik() {
 				spine_chain,
 				correctedHipTransform * skeleton->get_bone_rest(hip).basis.inverse(),
 				headGlobalTransform);
-		//skeleton->set_bone_global_pose_override(
-		//    hip, hipGlobalTransform, 1.0f, true);
 		skeleton->set_bone_pose_rotation(hip, hipGlobalTransform.get_basis().get_rotation_quaternion());
 		skeleton->set_bone_pose_position(hip, hipGlobalTransform.get_origin());
 
 		apply_ik_map(ik_map, hipGlobalTransform,
 				bone_id_order(spine_chain));
 
-		// Keep Hip and Head as global poses tand then apply them as global pose
-		// override
 		Quaternion neckQuaternion = Quaternion();
 		int parent_bone = skeleton->get_bone_parent(head);
 		while (parent_bone != -1) {
 			neckQuaternion = skeleton->get_bone_pose_rotation(parent_bone) * neckQuaternion;
 			parent_bone = skeleton->get_bone_parent(parent_bone);
 		}
-		//skeleton->set_bone_global_pose_override(
-		//    head, headGlobalTransform, 1.0f, true);
 		skeleton->set_bone_pose_rotation(head, neckQuaternion.inverse() * headGlobalTransform.get_basis().get_rotation_quaternion());
 
 		// Calculate and return the parent bone position for the arms
