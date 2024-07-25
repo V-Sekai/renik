@@ -78,8 +78,6 @@ protected:
 	static void _bind_methods();
 
 public:
-	Vector<Transform3D> compute_global_transforms(const Vector<RenIKChain::Joint> &joints, const Transform3D &root, const Transform3D &true_root);
-	void compute_rest_and_target_positions(const Vector<Transform3D> &p_global_transforms, const Transform3D &p_target, const Vector3 &p_priority, Vector<Vector3> &p_reference_positions, Vector<Vector3> &p_target_positions, Vector<double> &r_weights);
 	HashMap<BoneId, Quaternion> solve_ik_qcp(Ref<RenIKChain> chain,
 			Transform3D root,
 			Transform3D target);
