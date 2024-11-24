@@ -78,9 +78,6 @@ protected:
 	static void _bind_methods();
 
 public:
-	HashMap<BoneId, Quaternion> solve_ik_qcp(Ref<RenIKChain> chain,
-			Transform3D root,
-			Transform3D target);
 	void set_setup_humanoid_bones(bool set_targets);
 	bool get_setup_humanoid_bones() const;
 	void update_ik();
@@ -471,7 +468,7 @@ public:
 			Transform3D target);
 
 	static HashMap<BoneId, Quaternion>
-	solve_ifabrik(Ref<RenIKChain> chain, Transform3D chain_parent_transform,
+	solve_ifabrik(Ref<RenIKChain> chain, Transform3D root,
 			Transform3D target, float threshold, int loopLimit);
 
 private:
