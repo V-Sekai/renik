@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef RENIK_LIMB_H
-#define RENIK_LIMB_H
+#pragma once
 
 #include <scene/3d/skeleton_3d.h>
 
@@ -136,5 +135,3 @@ struct RenIKMultiLimb : public Resource {
 	void init(Skeleton3D *p_skeleton, BoneId p_root_bone,
 			BoneId p_leaf_bone); // Create sections and calc all imaginary bones.
 };
-
-#endif // RENIK_LIMB_H

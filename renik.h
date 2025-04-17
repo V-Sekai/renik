@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef RENIK_H
-#define RENIK_H
+#pragma once
 
 #ifndef _3D_DISABLED
 
@@ -543,5 +542,3 @@ private:
 };
 
 #endif
-
-#endif // RENIK_H

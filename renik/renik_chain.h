@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef RENIK_CHAIN_H
-#define RENIK_CHAIN_H
+#pragma once
 
 #include <scene/3d/skeleton_3d.h>
 
@@ -93,5 +92,3 @@ public:
 	void set_twist_start(Skeleton3D *p_skeleton, float p_twist_start);
 	bool contains_bone(Skeleton3D *p_skeleton, BoneId p_bone);
 };
-
-#endif // RENIK_CHAIN_H

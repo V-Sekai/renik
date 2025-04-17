@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef RENIK_HELPER_H
-#define RENIK_HELPER_H
+#pragma once
 
 #ifndef _3D_DISABLED
 
@@ -46,5 +45,3 @@ Vector3 log_clamp(Vector3 p_vector, Vector3 p_target, float p_looseness);
 } // namespace RenIKHelper
 
 #endif
-
-#endif // RENIK_HELPER_H

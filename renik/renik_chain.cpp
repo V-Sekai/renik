@@ -137,42 +137,64 @@ void RenIKChain::set_leaf_bone(Skeleton3D *skeleton, BoneId p_leaf_bone) {
 	init_chain(skeleton);
 }
 
-bool RenIKChain::is_valid() { return !joints.is_empty(); }
+bool RenIKChain::is_valid() {
+	return !joints.is_empty();
+}
 
-float RenIKChain::get_total_length() { return total_length; }
+float RenIKChain::get_total_length() {
+	return total_length;
+}
 
-Vector<RenIKChain::Joint> RenIKChain::get_joints() { return joints; }
+Vector<RenIKChain::Joint> RenIKChain::get_joints() {
+	return joints;
+}
 
-Transform3D RenIKChain::get_relative_rest_leaf() { return rest_leaf; }
+Transform3D RenIKChain::get_relative_rest_leaf() {
+	return rest_leaf;
+}
 
-BoneId RenIKChain::get_first_bone() { return first_bone; }
+BoneId RenIKChain::get_first_bone() {
+	return first_bone;
+}
 
-BoneId RenIKChain::get_root_bone() { return root_bone; }
+BoneId RenIKChain::get_root_bone() {
+	return root_bone;
+}
 
-BoneId RenIKChain::get_leaf_bone() { return leaf_bone; }
+BoneId RenIKChain::get_leaf_bone() {
+	return leaf_bone;
+}
 
-float RenIKChain::get_root_stiffness() { return root_influence; }
+float RenIKChain::get_root_stiffness() {
+	return root_influence;
+}
 
 void RenIKChain::set_root_stiffness(Skeleton3D *p_skeleton, float p_stiffness) {
 	root_influence = p_stiffness;
 	init_chain(p_skeleton);
 }
 
-float RenIKChain::get_leaf_stiffness() { return leaf_influence; }
+float RenIKChain::get_leaf_stiffness() {
+	return leaf_influence;
+}
 
 void RenIKChain::set_leaf_stiffness(Skeleton3D *p_skeleton, float p_stiffness) {
 	leaf_influence = p_stiffness;
 	init_chain(p_skeleton);
 }
 
-float RenIKChain::get_twist() { return twist_influence; }
+float RenIKChain::get_twist() {
+	return twist_influence;
+}
 
 void RenIKChain::set_twist(Skeleton3D *p_skeleton, float p_twist) {
 	twist_influence = p_twist;
 	init_chain(p_skeleton);
 }
 
-float RenIKChain::get_twist_start() { return twist_start; }
+float RenIKChain::get_twist_start() {
+	return twist_start;
+}
 
 void RenIKChain::set_twist_start(Skeleton3D *p_skeleton, float p_twist_start) {
 	twist_start = p_twist_start;

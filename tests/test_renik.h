@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef TEST_RENIK_H
-#define TEST_RENIK_H
+#pragma once
 
 #include "core/math/basis.h"
 #include "tests/test_macros.h"
@@ -54,27 +53,27 @@ TEST_CASE("[Modules][RENIK] math") {
 	CHECK_MESSAGE(noRotation.is_equal_approx(noRotationCheck), "align_vectors 2");
 	CHECK_MESSAGE(
 			Math::is_equal_approx(Vector3(1, 0, 0).angle_to(Vector3(0, 1, 0)),
-					(real_t)Math_PI / 2.f),
+					(real_t)Math::PI / 2.f),
 			"math 1");
 	CHECK_MESSAGE(
 			Math::is_equal_approx(Vector3(1, 0, 0).angle_to(Vector3(0, 0, 1)),
-					(real_t)Math_PI / 2.f),
+					(real_t)Math::PI / 2.f),
 			"math 2");
 	CHECK_MESSAGE(
 			Math::is_equal_approx(Vector3(1, 0, 0).angle_to(Vector3(0, 1, 1)),
-					(real_t)Math_PI / 2.f),
+					(real_t)Math::PI / 2.f),
 			"math 3");
 	CHECK_MESSAGE(
 			Math::is_equal_approx(Vector3(1, 0, 0).angle_to(Vector3(1, 1, 0)),
-					(real_t)Math_PI / 4.f),
+					(real_t)Math::PI / 4.f),
 			"math 4");
 	CHECK_MESSAGE(
 			Math::is_equal_approx(Vector3(1, 0, 0).angle_to(Vector3(-1, 0, 0)),
-					(real_t)Math_PI),
+					(real_t)Math::PI),
 			"math 5");
 	CHECK_MESSAGE(
 			Math::is_equal_approx(Vector3(1, 0, 0).angle_to(Vector3(-1, -1, 0)),
-					(real_t)Math_PI * .75f),
+					(real_t)Math::PI * .75f),
 			"math 6");
 	CHECK_MESSAGE(
 			Math::is_equal_approx(Vector3(3, 7, -13).angle_to(Vector3(-14, -12, -10)),
@@ -83,5 +82,3 @@ TEST_CASE("[Modules][RENIK] math") {
 }
 
 } // namespace TestRenIK
-
-#endif // TEST_RENIK_H

@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef RENIK_PLACEMENT_H
-#define RENIK_PLACEMENT_H
+#pragma once
 
 #include "servers/physics_server_3d.h"
 #include <core/config/engine.h>
@@ -50,9 +49,9 @@ struct Gait {
 	float drop_time_base = 10;
 	float drop_time_scalar = 5;
 	// ground
-	float tip_toe_distance_scalar = Math_PI / 8;
-	float tip_toe_speed_scalar = Math_PI / 4;
-	float tip_toe_angle_max = Math_PI / 3;
+	float tip_toe_distance_scalar = Math::PI / 8;
+	float tip_toe_speed_scalar = Math::PI / 4;
+	float tip_toe_angle_max = Math::PI / 3;
 	// lift
 	float lift_vertical = 0.025;
 	float lift_vertical_scalar = 0.25;
@@ -142,25 +141,25 @@ public:
 			0 // ground time min then base and scalar for lift time, apex in time,
 			  // apex out time, and drop time
 			,
-			Math_PI / 2, Math_PI / 4,
-			Math_PI / 3 // tip toe distance scalar, speed scalar, and angle max
+			Math::PI / 2, Math::PI / 4,
+			Math::PI / 3 // tip toe distance scalar, speed scalar, and angle max
 			,
 			0.0, 0.4, 0.70,
-			Math_PI /
+			Math::PI /
 					2 // lift vertical, vertical scalar, horizontal scalar, and angle
 			,
-			0.0, 0.1, Math_PI / 8 // apex vertical, vertical scalar, angle
+			0.0, 0.1, Math::PI / 8 // apex vertical, vertical scalar, angle
 			,
-			0.0, 0.05, 0.25, Math_PI / -8 // drop vertical, vertical scalar, angle
+			0.0, 0.05, 0.25, Math::PI / -8 // drop vertical, vertical scalar, angle
 			,
 			0.05, 0.4, 0.85); // contact ease, ease scalar, and scaling ease
 	Gait backward_gait =
 			Gait(0.5, 0.75, 5, 5, 5, 10, 5, 10, 5, 5, 5, 0, 0, 0, 0.025, 0.1, 0.33,
-					Math_PI / -8, 0.1, 0.1, Math_PI / 8, 0.0, 0.1, 0.25, Math_PI / 8,
+					Math::PI / -8, 0.1, 0.1, Math::PI / 8, 0.0, 0.1, 0.25, Math::PI / 8,
 					0.1, 0.4, 0.85);
 	Gait sideways_gait =
 			Gait(0.75, 0.75, 10, 5, 5, 10, 5, 10, 5, 5, 5, 0, 0, 0, 0.05, 0.05, 0.2,
-					0.0, 0.01, 0.1, Math_PI / 8, 0.01, 0.05, 0.25, 0.0, 0.1, 0.4, 0.85);
+					0.0, 0.01, 0.1, Math::PI / 8, 0.01, 0.05, 0.25, 0.0, 0.1, 0.4, 0.85);
 
 	float spine_length = 1;
 	float left_leg_length = 1;
@@ -183,7 +182,7 @@ public:
 	float max_threshold =
 			0.05; // when all scaling stops and the legs just move faster
 	float min_transition_speed = 0.04;
-	float rotation_threshold = Math_PI / 4.0;
+	float rotation_threshold = Math::PI / 4.0;
 	float balance_threshold = 0.03;
 	float center_of_balance_position =
 			0.5; // distance between hips and head that we'll call the center of
@@ -191,7 +190,7 @@ public:
 
 	float dangle_ratio = 0.9;
 	float dangle_stiffness = 3;
-	float dangle_angle = Math_PI / 8;
+	float dangle_angle = Math::PI / 8;
 	float dangle_follow_head = 0.5;
 	Vector3 left_hip_offset;
 	Vector3 right_hip_offset;
@@ -307,5 +306,3 @@ private:
 	int get_loop_state(float p_loop_state_scaling, float p_loop_progress,
 			float &r_loop_state_progress, Gait p_gait);
 };
-
-#endif // RENIK_PLACEMENT_H

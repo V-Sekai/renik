@@ -125,9 +125,21 @@ bool RenIKLimb::is_valid_in_skeleton(Skeleton3D *p_skeleton) {
 	return curr != -1;
 }
 
-BoneId RenIKLimb::get_leaf_bone() { return leaf_id; }
-BoneId RenIKLimb::get_lower_bone() { return lower_id; }
-BoneId RenIKLimb::get_upper_bone() { return upper_id; }
-Transform3D RenIKLimb::get_upper() { return upper; }
-Transform3D RenIKLimb::get_lower() { return lower; }
-Transform3D RenIKLimb::get_leaf() { return leaf; }
+BoneId RenIKLimb::get_leaf_bone() {
+	return leaf_id;
+}
+BoneId RenIKLimb::get_lower_bone() {
+	return lower_id;
+}
+BoneId RenIKLimb::get_upper_bone() {
+	return upper_id;
+}
+Transform3D RenIKLimb::get_upper() {
+	return upper;
+}
+Transform3D RenIKLimb::get_lower() {
+	return lower;
+}
+Transform3D RenIKLimb::get_leaf() {
+	return leaf;
+}

@@ -354,7 +354,6 @@ void RenIKPlacement::loop_foot(Transform3D &r_step, Transform3D &r_stand,
 		}
 		case LOOP_LIFT: {
 			float step_distance = r_step.origin.distance_to(p_ground_position) / p_leg_length;
-			Transform3D lean_offset;
 			float tip_toe_angle = step_distance * p_gait.tip_toe_distance_scalar +
 					horizontal_scaling * p_gait.tip_toe_speed_scalar;
 			tip_toe_angle = tip_toe_angle > p_gait.tip_toe_angle_max
@@ -883,20 +882,25 @@ bool RenIKPlacement::is_balanced(Transform3D p_left, Transform3D p_right) {
 			   // and the right are on the same side of the center
 }
 
-void RenIKPlacement::set_falling(bool p_falling) { fall_override = p_falling; }
+void RenIKPlacement::set_falling(bool p_falling) {
+	fall_override = p_falling;
+}
 
 void RenIKPlacement::set_collision_mask(uint32_t p_mask) {
 	collision_mask = p_mask;
 }
 
-uint32_t RenIKPlacement::get_collision_mask() const { return collision_mask; }
+uint32_t RenIKPlacement::get_collision_mask() const {
+	return collision_mask;
+}
 
 void RenIKPlacement::set_collision_mask_bit(int p_bit, bool p_value) {
 	uint32_t mask = get_collision_mask();
-	if (p_value)
+	if (p_value) {
 		mask |= 1 << p_bit;
-	else
+	} else {
 		mask &= ~(1 << p_bit);
+	}
 	set_collision_mask(mask);
 }
 
