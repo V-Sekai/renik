@@ -1921,9 +1921,9 @@ HashMap<BoneId, Basis> RenIK::solve_trig_ik_redux(Ref<RenIKLimb> limb,
 
 		inflectionPoint += overflowArea;
 		if (twistAngle > 0 && twistAngle > inflectionPoint) {
-			twistAngle -= Math_TAU; // Change to complement angle
+			twistAngle -= Math::TAU; // Change to complement angle
 		} else if (twistAngle < 0 && twistAngle < inflectionPoint) {
-			twistAngle += Math_TAU; // Change to complement angle
+			twistAngle += Math::TAU; // Change to complement angle
 		}
 
 		float lowerTwist = twistAngle * limb->lower_limb_twist;
