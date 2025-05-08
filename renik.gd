@@ -27,7 +27,7 @@
 class_name RenIK3D
 extends Node3D
 
-const renik_chain_class = preload("./renik_chain.gd")
+const renik_chain_class = preload("./renik_spine.gd")
 const renik_limb_class = preload("./renik_limb.gd")
 const renik_helper = preload("./renik_helper.gd")
 
