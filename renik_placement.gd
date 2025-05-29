@@ -185,6 +185,7 @@ func update_skeleton():
 	if _is_ready:
 		skeleton = get_node_or_null(armature_skeleton_path) as Skeleton3D
 	if skeleton != null:
+		head_id = skeleton.find_bone(armature_head)
 		left_foot_id = skeleton.find_bone(armature_left_foot)
 		right_foot_id = skeleton.find_bone(armature_right_foot)
 		calculate_leg_lengths()
@@ -205,6 +206,7 @@ func update_skeleton():
 @export_group("Armature", "armature_")
 
 var skeleton: Skeleton3D
+var head_id: int
 var left_foot_id: int
 var right_foot_id: int
 
@@ -227,7 +229,7 @@ var right_foot_id: int
 
 @export var enable_left_foot_placement: bool = true
 @export var enable_right_foot_placement: bool = true
-@export var enable_hip_placement: bool = false
+@export var enable_hip_placement: bool = true
 
 @export_group("Targets")
 
@@ -325,15 +327,21 @@ func update_placement (delta: float) -> void:
 	target_foot_is_valid = false
 	target_hip_is_valid = false
 
+	var head_xform: Transform3D
+	if head_target_spatial != null and head_target_spatial.is_inside_tree():
+		head_xform = head_target_spatial.global_transform
+	else:
+		head_xform = skeleton.global_transform * skeleton.get_bone_global_pose(head_id)
+
 	# Based on head position and delta time, we calc our speed and distance from
 	# the ground and place the feet accordingly
-	if ((enable_left_foot_placement or enable_right_foot_placement) && head_target_spatial && head_target_spatial.is_inside_tree()):
+	if enable_left_foot_placement or enable_right_foot_placement:
 		target_foot_is_valid = true
-		foot_place(delta, head_target_spatial.global_transform,
-				head_target_spatial.get_world_3d(), false)
+		foot_place(delta, head_xform,
+				skeleton.get_world_3d(), false)
 		
 
-	if enable_hip_placement && head_target_spatial:
+	if enable_hip_placement:
 		target_hip_is_valid = true
 		# calc twist from hands here
 		var twist: float = 0
@@ -349,7 +357,7 @@ func update_placement (delta: float) -> void:
 				target_right_xform = foot_right_target_spatial.global_transform
 			else:
 				target_right_xform = skeleton.get_bone_global_pose(right_foot_id)
-		hip_place(delta, head_target_spatial.global_transform,
+		hip_place(delta, head_xform,
 				target_left_xform, target_right_xform, twist, false)
 
 

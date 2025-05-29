@@ -40,7 +40,13 @@ var leaf_id: int = -1
 var lower_id: int = -1
 var upper_id: int = -1
 
-@export_enum("LeftHand", "RightHand", "LeftFoot", "RightFoot", "Custom Limb") var preset: int = 0:
+const LEFT_HAND = 0
+const RIGHT_HAND = 1
+const LEFT_FOOT = 2
+const RIGHT_FOOT = 3
+const CUSTOM = 4
+
+@export_enum("LeftHand", "RightHand", "LeftFoot", "RightFoot", "Custom Limb") var preset: int = 4:
 	set(x):
 		preset = x
 		leaf_id = -1

@@ -236,12 +236,17 @@ func _process_modification() -> void:
 
 func perform_torso_ik ():
 	var skeleton := get_skeleton()
-	if head_target && head_target.visible && skeleton && is_valid():
-		var skel_inverse: Transform3D = skeleton.global_transform.affine_inverse()
-		var headGlobalTransform: Transform3D = (skel_inverse * head_target.global_transform).orthonormalized()
-		var hipTransform: Transform3D
+	var head_xform: Transform3D
+	if skeleton && is_valid():
 		var hip: int = root_id
 		var head: int = leaf_id
+		var skel_inverse: Transform3D = skeleton.global_transform.affine_inverse()
+		if head_target && head_target.visible:
+			head_xform = skel_inverse * head_target.global_transform
+		else:
+			head_xform = skeleton.get_bone_global_pose(head)
+		var headGlobalTransform: Transform3D = head_xform.orthonormalized()
+		var hipTransform: Transform3D
 		if hip_target and hip_target.visible:
 			hipTransform = hip_target.global_transform.orthonormalized()
 		#else if hip_placement:
