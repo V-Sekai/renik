@@ -328,9 +328,11 @@ func perform_torso_ik ():
 				chest_xform = skeleton.get_bone_global_pose(chest_id)
 			chestGlobalTransform = chest_xform.orthonormalized()
 
+		var has_hip_tracker := false
 		var hipTransform: Transform3D
 		if hip_target and hip_target.visible:
 			hipTransform = skel_inverse * hip_target.global_transform.orthonormalized()
+			has_hip_tracker = true
 		else:
 			hipTransform = skeleton.get_bone_global_pose(hip)
 		var hipGlobalTransform: Transform3D = hipTransform.orthonormalized()
@@ -357,10 +359,10 @@ func perform_torso_ik ():
 		var ik_map: Dictionary = solve_ifabrik(
 				hipGlobalTransform, headGlobalTransform, chestGlobalTransform,
 				use_chest_twist, DEFAULT_THRESHOLD, DEFAULT_LOOP_LIMIT)
-
-		skeleton.set_bone_pose_rotation(hip, (parent_xform.basis.inverse() * hipGlobalTransform.basis).get_rotation_quaternion())
-		if root_bone == &"Hips":
-			skeleton.set_bone_pose_position(hip, hipGlobalTransform.origin)
+		if has_hip_tracker:
+			skeleton.set_bone_pose_rotation(hip, (parent_xform.basis.inverse() * hipGlobalTransform.basis).get_rotation_quaternion())
+			if root_bone == &"Hips" and has_hip_tracker:
+				skeleton.set_bone_pose_position(hip, hipGlobalTransform.origin)
 
 		apply_ik_map_quat(ik_map, hipGlobalTransform, bone_id_order_spine())
 
@@ -494,7 +496,8 @@ func solve_ifabrik(root: Transform3D, target: Transform3D, twistTarget: Transfor
 
 			var new_rotation: Quaternion = pose
 			
-			var old_rotation: Quaternion = prevTwist.inverse() * new_rotation # skeleton.get_bone_pose_rotation(joint.x)
+			# renik_spine.gd:497 @ solve_ifabrik(): The quaternion (-0.0, 0.021804, 0.0, 1.000638) must be normalized.
+			var old_rotation: Quaternion = (prevTwist.normalized().inverse() * new_rotation).normalized() # skeleton.get_bone_pose_rotation(joint.x)
 			var lerp_fraction: float = joints[joint_i].chest_twist_influence if use_chest_twist else joints[joint_i].twist_influence # float(joint_i + 1) / len(joints)
 			var child_target_quat := parentRot2.inverse() * relativeTargetQuat
 			var child_twist_quat := renik_helper.get_twist(child_target_quat.normalized(), Vector3(0,1,0)) # Quaternion(child_target_quat * Vector3(0,1,0), 0).inverse() * child_target_quat

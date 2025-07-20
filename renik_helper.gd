@@ -39,12 +39,16 @@ static func get_twist(q : Quaternion, axis : Vector3) -> Quaternion:
 	# Assert that the quaternion and the axis is normalized
 	var p :Vector3 = Vector3(q.x,q.y,q.z).dot(axis) * axis
 	var twist :Quaternion= Quaternion(p.x, p.y, p.z,q.w).normalized()
+	if not twist.is_finite():
+		return Quaternion.IDENTITY
 	return twist
 
 static func get_swing(q : Quaternion, axis : Vector3) -> Quaternion:
 	var twist := get_twist(q,axis)
 	#var swing := -(q.inverse() * twist)	
 	var swing := twist.inverse() * q
+	if not swing.is_finite():
+		return Quaternion.IDENTITY
 	return swing
 
 
