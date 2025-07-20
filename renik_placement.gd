@@ -31,26 +31,30 @@ const renik_gait_class = preload("./renik_placement_gait.gd")
 
 # -2 is falling, -1 is transitioning to standing, 0 is stand state, 1
 # is transitioning to stepping, 2 is stepping
-const FALLING: int = 0
-const STANDING_TRANSITION: int = -1
-const STANDING: int = 1
-const STEPPING_TRANSITION: int = -2
-const STEPPING: int = 2
-const BACKSTEPPING_TRANSITION: int = -3
-const BACKSTEPPING: int = 3
-const LAYING_TRANSITION: int = -4
-const LAYING: int = 4
-const STRAFING_TRANSITION: int = -5
-const STRAFING: int = 5
-const OTHER_TRANSITION: int = -6
-const OTHER: int = 6
+enum WalkState {
+	FALLING = 0,
+	STANDING_TRANSITION = -1,
+	STANDING = 1,
+	STEPPING_TRANSITION = -2,
+	STEPPING = 2,
+	BACKSTEPPING_TRANSITION = -3,
+	BACKSTEPPING = 3,
+	LAYING_TRANSITION = -4,
+	LAYING = 4,
+	STRAFING_TRANSITION = -5,
+	STRAFING = 5,
+	OTHER_TRANSITION = -6,
+	OTHER = 6,
+}
 
-const LOOP_GROUND_IN: int = 0
-const LOOP_LIFT: int = 1
-const LOOP_APEX_IN: int = 2
-const LOOP_APEX_OUT: int = 3
-const LOOP_DROP: int = 4
-const LOOP_GROUND_OUT: int = 5
+enum LoopState {
+	LOOP_GROUND_IN = 0,
+	LOOP_LIFT = 1,
+	LOOP_APEX_IN = 2,
+	LOOP_APEX_OUT = 3,
+	LOOP_DROP = 4,
+	LOOP_GROUND_OUT = 5,
+}
 
 @export var live_preview: bool
 
@@ -178,7 +182,8 @@ func _ready():
 	hip_target_spatial = get_node_or_null(armature_hip_target) as Node3D
 	foot_left_target_spatial = get_node_or_null(armature_left_foot_target) as Node3D
 	foot_right_target_spatial = get_node_or_null(armature_right_foot_target) as Node3D
-	set_process_internal(true)
+	if (self as Node3D) is not SkeletonModifier3D:
+		set_process_internal(true)
 	set_physics_process_internal(true)
 
 func update_skeleton():
@@ -190,6 +195,9 @@ func update_skeleton():
 		right_foot_id = skeleton.find_bone(armature_right_foot)
 		calculate_leg_lengths()
 		calculate_hip_offset()
+
+func _process_modification():
+	interpolate_transforms(Engine.get_physics_interpolation_fraction())
 
 
 # Calculated using bones.
@@ -261,27 +269,28 @@ var foot_right_target_spatial: Node3D
 		if _is_ready:
 			foot_right_target_spatial = get_node_or_null(armature_right_foot_target) as Node3D
 
+@export_group("Internal State")
 
 const foot_basis_offset: Basis = Basis(Vector3(-1, 0, 0), Vector3(0, 0, 1), Vector3(0, 1, 0))
 const foot_quat_offset: Quaternion = Quaternion(foot_basis_offset)
 
-var fall_override: bool = false
-var prone_override: bool = false
-var walk_state: int = 0
-var walk_transition_progress: float = 0
-var step_progress: float = 0
-var prevHead: Vector3
-var collision_mask: int = 1 # the first bit is on but all others are off
-var collide_with_areas: bool = false
-var collide_with_bodies: bool = true
+@export var fall_override: bool = false
+@export var prone_override: bool = false
+@export var walk_state: WalkState = 0
+@export var walk_transition_progress: float = 0
+@export var step_progress: float = 0
+@export var prevHead: Vector3
+@export_flags_3d_physics var collision_mask: int = 1 # the first bit is on but all others are off
+@export var collide_with_areas: bool = false
+@export var collide_with_bodies: bool = true
 
 # Standing
 var left_stand: Transform3D
 var right_stand: Transform3D
 var left_stand_local: Transform3D # local to ground
 var right_stand_local: Transform3D # local to ground
-var left_ground: Node3D = null
-var right_ground: Node3D = null
+@export var left_ground: Node3D = null
+@export var right_ground: Node3D = null
 var prev_left_ground: Node3D = null
 var prev_right_ground: Node3D = null
 
@@ -293,9 +302,9 @@ var right_grounded_stop: Vector3
 const standing_transition_duration: float = 0.25
 const stepping_transition_duration: float = 0.2
 const laying_transition_duration: float = 0.25
-var left_loop_state: int = 0
-var right_loop_state: int = 0
-var loop_scaling: float = 0
+@export var left_loop_state: LoopState = 0
+@export var right_loop_state: LoopState = 0
+@export var loop_scaling: float = 0
 
 
 func save_previous_transforms () -> void:
@@ -519,22 +528,22 @@ func get_loop_state(p_loop_state_scaling: float, p_loop_progress: float, p_gait:
 	var progress_time: float = p_loop_progress * total_time
 
 	if progress_time < ground_time:
-		state = LOOP_GROUND_IN
+		state = LoopState.LOOP_GROUND_IN
 		r_loop_state_progress = (progress_time) / ground_time
 	elif progress_time < ground_time + lift_time:
-		state = LOOP_LIFT
+		state = LoopState.LOOP_LIFT
 		r_loop_state_progress = (progress_time - ground_time) / lift_time
 	elif progress_time < ground_time + lift_time + apex_in_time:
-		state = LOOP_APEX_IN
+		state = LoopState.LOOP_APEX_IN
 		r_loop_state_progress = (progress_time - ground_time - lift_time) / apex_in_time
 	elif (progress_time < ground_time + lift_time + apex_in_time + apex_out_time):
-		state = LOOP_APEX_OUT
+		state = LoopState.LOOP_APEX_OUT
 		r_loop_state_progress = (progress_time - ground_time - lift_time - apex_in_time) / apex_out_time
 	elif (progress_time < ground_time + lift_time + apex_in_time + apex_out_time + drop_time):
-		state = LOOP_DROP
+		state = LoopState.LOOP_DROP
 		r_loop_state_progress = (progress_time - ground_time - lift_time - apex_in_time - apex_out_time) / drop_time
 	else:
-		state = LOOP_GROUND_OUT
+		state = LoopState.LOOP_GROUND_OUT
 		r_loop_state_progress = (progress_time - ground_time - lift_time - apex_in_time - apex_out_time - drop_time) / ground_time
 
 	return Vector2(state, r_loop_state_progress)
@@ -545,7 +554,7 @@ class LoopFootParams:
 	var r_stand: Transform3D
 	var r_stand_local: Transform3D
 	var p_prev_ground: Node3D
-	var r_loop_state: int
+	var r_loop_state: LoopState
 	var r_grounded_stop: Vector3
 
 
@@ -598,7 +607,7 @@ func loop_foot(params: LoopFootParams,
 							p_gait.drop_horizontal_scalar)
 
 	match params.r_loop_state:
-		LOOP_GROUND_IN, LOOP_GROUND_OUT:
+		LoopState.LOOP_GROUND_IN, LoopState.LOOP_GROUND_OUT:
 			# stick to where it landed
 			if p_ground != null && p_ground == params.p_prev_ground:
 				params.r_stand = stand_foot(grounded_foot, params.r_stand_local, p_ground)
@@ -623,7 +632,7 @@ func loop_foot(params: LoopFootParams,
 			params.r_step *= lean_offset
 			params.r_grounded_stop = params.r_step.origin
 
-		LOOP_LIFT:
+		LoopState.LOOP_LIFT:
 			var step_distance: float = params.r_step.origin.distance_to(p_ground_pos) / p_leg_length
 			var lean_offset: Transform3D
 			var tip_toe_angle: float = (step_distance * p_gait.tip_toe_distance_scalar +
@@ -638,13 +647,13 @@ func loop_foot(params: LoopFootParams,
 					lifted_foot.origin + p_ground_normal * vertical_scaling,
 					loop_state_progress)
 
-		LOOP_APEX_IN:
+		LoopState.LOOP_APEX_IN:
 			params.r_step.basis = Basis(lifted_foot.basis.get_rotation_quaternion().slerp(apex_foot.basis.get_rotation_quaternion(), loop_state_progress))
 			params.r_step.origin = lifted_foot.origin.cubic_interpolate(
 					apex_foot.origin, lifted_foot.origin - p_ground_normal * vertical_scaling,
 					apex_foot.origin + ground_velocity * p_leg_length, loop_state_progress)
 
-		LOOP_APEX_OUT:
+		LoopState.LOOP_APEX_OUT:
 			params.r_step.basis = Basis(apex_foot.basis.get_rotation_quaternion().slerp(drop_foot.basis.get_rotation_quaternion(), loop_state_progress))
 			params.r_step.origin = apex_foot.origin.cubic_interpolate(
 					drop_foot.origin,
@@ -652,7 +661,7 @@ func loop_foot(params: LoopFootParams,
 					drop_foot.origin - p_ground_normal * vertical_scaling,
 					loop_state_progress)
 
-		LOOP_DROP:
+		LoopState.LOOP_DROP:
 			params.r_step.basis = Basis(drop_foot.basis.get_rotation_quaternion().slerp(grounded_foot.basis.get_rotation_quaternion(), loop_state_progress))
 			params.r_step.origin = drop_foot.origin.cubic_interpolate(
 					grounded_foot.origin,
@@ -660,7 +669,7 @@ func loop_foot(params: LoopFootParams,
 					grounded_foot.origin - ground_velocity * horizontal_scaling,
 					loop_state_progress)
 
-	if params.r_loop_state != LOOP_GROUND_IN && params.r_loop_state != LOOP_GROUND_OUT:
+	if params.r_loop_state != LoopState.LOOP_GROUND_IN && params.r_loop_state != LoopState.LOOP_GROUND_OUT:
 		# update standing positions to ensure a smooth transition to standing
 		params.r_stand.origin = p_ground_pos
 		params.r_stand.basis = grounded_foot.basis
@@ -669,7 +678,7 @@ func loop_foot(params: LoopFootParams,
 			ground_global.basis = ground_global.basis.orthonormalized()
 			params.r_stand_local = ground_global.affine_inverse() * params.r_stand
 
-		if walk_state != LOOP_LIFT:
+		if walk_state != LoopState.LOOP_LIFT:
 			params.r_grounded_stop = params.r_step.origin
 		else:
 			var contact_easing: float = p_gait.contact_point_ease + p_gait.contact_point_ease_scalar * p_loop_scaling
@@ -746,22 +755,22 @@ func step_direction(p_forward: Vector3, p_side: Vector3,
 	var normalized_forward: Vector3 = p_forward.normalized()
 	var normalized_side: Vector3 = p_side.normalized()
 	if absf(normalized_velocity.dot(normalized_side)) > strafe_angle_limit:
-		if walk_state != STRAFING && walk_state != STRAFING_TRANSITION:
-			walk_state = STRAFING_TRANSITION
+		if walk_state !=  WalkState.STRAFING && walk_state != WalkState.STRAFING_TRANSITION:
+			walk_state =  WalkState.STRAFING_TRANSITION
 			walk_transition_progress = stepping_transition_duration # In units of loop progression
 			initialize_loop(normalized_velocity, p_left_ground, p_right_ground,
 					p_left_grounded, p_right_grounded)
 
 	elif normalized_velocity.dot(normalized_forward) < 0:
-		if walk_state != BACKSTEPPING && walk_state != BACKSTEPPING_TRANSITION:
-			walk_state = BACKSTEPPING_TRANSITION
+		if walk_state != WalkState.BACKSTEPPING && walk_state != WalkState.BACKSTEPPING_TRANSITION:
+			walk_state = WalkState.BACKSTEPPING_TRANSITION
 			walk_transition_progress = stepping_transition_duration # In units of loop progression
 			initialize_loop(normalized_velocity, p_left_ground, p_right_ground,
 					p_left_grounded, p_right_grounded)
 
 	else:
-		if walk_state != STEPPING && walk_state != STEPPING_TRANSITION:
-			walk_state = STEPPING_TRANSITION
+		if walk_state != WalkState.STEPPING && walk_state != WalkState.STEPPING_TRANSITION:
+			walk_state = WalkState.STEPPING_TRANSITION
 			walk_transition_progress = stepping_transition_duration # In units of loop progression
 			initialize_loop(normalized_velocity, p_left_ground, p_right_ground,
 					p_left_grounded, p_right_grounded)
@@ -831,7 +840,9 @@ func foot_place_raycasts(
 
 	left_ground = p_left_raycast.collider as Node3D
 	right_ground = p_right_raycast.collider as Node3D
-	var velocity: Vector3 = (p_head.origin - prevHead) / p_delta
+	var velocity: Vector3 = (p_head.origin - prevHead) / max(1e-6, p_delta)
+	prevHead = p_head.origin
+
 	var left_velocity: Vector3
 	var right_velocity: Vector3
 	if p_left_raycast.collider != null:
@@ -848,13 +859,13 @@ func foot_place_raycasts(
 	var effective_min_threshold: float = min_threshold * ((left_leg_length + right_leg_length) / 2) / step_pace
 	if (!p_left_raycast.collider && !p_right_raycast.collider && !p_laying_raycast.collider) || fall_override:
 		# If none of the raycasts hit anything then there isn't any ground to stand on
-		walk_state = FALLING
+		walk_state = WalkState.FALLING
 		walk_transition_progress = 0
 	elif p_laying_raycast.collider || prone_override:
 		# If we're close enough for the laying raycast to trigger and we aren't
 		# already laying down transition to laying down
-		if walk_state != LAYING && walk_state != LAYING_TRANSITION:
-			walk_state = LAYING_TRANSITION
+		if walk_state != WalkState.LAYING && walk_state != WalkState.LAYING_TRANSITION:
+			walk_state = WalkState.LAYING_TRANSITION
 			walk_transition_progress = laying_transition_duration # In units of loop progression
 
 	else:
@@ -868,7 +879,7 @@ func foot_place_raycasts(
 		forward.x = -forward.x # Flip the x for some reason
 		feet_sideways.x = -feet_sideways.x # Flip the x for some reason
 		match walk_state:
-			STANDING:
+			WalkState.STANDING:
 				# test that the feet aren't twisted in weird ways
 				var left_head_forward: Vector3 = Vector3.BACK*(p_head.basis * Basis(renik_helper.align_vectors(Vector3(0, 1, 0), p_left_raycast.normal * p_head.basis)))
 				var right_head_forward: Vector3 = Vector3.BACK*(p_head.basis * Basis(renik_helper.align_vectors(Vector3(0, 1, 0), p_right_raycast.normal * p_head.basis)))
@@ -908,7 +919,7 @@ func foot_place_raycasts(
 							p_right_raycast.position, p_left_raycast.collider != null,
 							p_right_raycast.collider != null)
 
-			STANDING_TRANSITION:
+			WalkState.STANDING_TRANSITION:
 				if (left_velocity.length() > effective_min_threshold ||
 						right_velocity.length() > effective_min_threshold ||
 						(p_left_raycast.collider != null &&
@@ -919,7 +930,7 @@ func foot_place_raycasts(
 							p_right_raycast.position, p_left_raycast.collider != null,
 							p_right_raycast.collider != null)
 
-			STEPPING, STEPPING_TRANSITION, BACKSTEPPING, BACKSTEPPING_TRANSITION, STRAFING, STRAFING_TRANSITION:
+			WalkState.STEPPING, WalkState.STEPPING_TRANSITION, WalkState.BACKSTEPPING, WalkState.BACKSTEPPING_TRANSITION,  WalkState.STRAFING,  WalkState.STRAFING_TRANSITION:
 				if (left_velocity.length() < effective_min_threshold &&
 						right_velocity.length() < effective_min_threshold &&
 						walk_transition_progress == 0 &&
@@ -929,7 +940,7 @@ func foot_place_raycasts(
 						(p_right_raycast.collider == null ||
 								right_stand.origin.distance_squared_to(p_right_raycast.position) <
 										balance_threshold * (left_leg_length + right_leg_length) / 2)):
-					walk_state = STANDING_TRANSITION
+					walk_state = WalkState.STANDING_TRANSITION
 					walk_transition_progress = standing_transition_duration # In units of loop progression
 				else:
 					step_direction(forward, feet_sideways, velocity, p_left_raycast.position,
@@ -949,7 +960,7 @@ func foot_place_raycasts(
 
 	# Step 2: Place foot based on state
 	match walk_state:
-		FALLING:
+		WalkState.FALLING:
 			var left_dangle: Transform3D = dangle_foot(p_head, (spine_length + left_leg_length) * dangle_ratio,
 							left_leg_length, left_hip_offset)
 			var right_dangle: Transform3D = dangle_foot(p_head, (spine_length + right_leg_length) * dangle_ratio,
@@ -977,7 +988,7 @@ func foot_place_raycasts(
 			prev_left_ground = null
 			prev_right_ground = null
 
-		STANDING_TRANSITION, STANDING:
+		WalkState.STANDING_TRANSITION, WalkState.STANDING:
 			var effective_transition_progress: float = walk_transition_progress / standing_transition_duration
 			effective_transition_progress = minf(effective_transition_progress, 1.0)
 			if left_ground != null:
@@ -1007,7 +1018,7 @@ func foot_place_raycasts(
 				target_right_foot.origin = renik_helper.log_clamp(target_right_foot.origin, right_dangle.origin,
 								1.0 / dangle_stiffness)
 
-		STEPPING_TRANSITION, STEPPING:
+		WalkState.STEPPING_TRANSITION, WalkState.STEPPING:
 			var effective_transition_progress: float = walk_transition_progress / stepping_transition_duration
 			effective_transition_progress = minf(effective_transition_progress, 1.0)
 			loop(p_head, velocity, p_left_raycast.position, p_left_raycast.normal,
@@ -1019,7 +1030,7 @@ func foot_place_raycasts(
 			target_right_foot = Transform3D(right_step.basis.get_rotation_quaternion() * foot_quat_offset, right_step.origin).interpolate_with(
 						target_right_foot, effective_transition_progress)
 
-		BACKSTEPPING_TRANSITION, BACKSTEPPING:
+		WalkState.BACKSTEPPING_TRANSITION, WalkState.BACKSTEPPING:
 			var effective_transition_progress: float = walk_transition_progress / stepping_transition_duration
 			effective_transition_progress = minf(effective_transition_progress, 1.0)
 			loop(p_head, velocity, p_left_raycast.position, p_left_raycast.normal,
@@ -1031,7 +1042,7 @@ func foot_place_raycasts(
 			target_right_foot = Transform3D(right_step.basis.get_rotation_quaternion() * foot_quat_offset, right_step.origin).interpolate_with(
 							target_right_foot, effective_transition_progress)
 
-		STRAFING_TRANSITION, STRAFING:
+		WalkState.STRAFING_TRANSITION,  WalkState.STRAFING:
 			var effective_transition_progress: float = walk_transition_progress / stepping_transition_duration
 			effective_transition_progress = minf(effective_transition_progress, 1.0)
 			loop(p_head, velocity, p_left_raycast.position, p_left_raycast.normal,
@@ -1043,14 +1054,13 @@ func foot_place_raycasts(
 			target_right_foot = Transform3D(right_step.basis.get_rotation_quaternion() * foot_quat_offset, right_step.origin).interpolate_with(
 						target_right_foot, effective_transition_progress)
 
-		LAYING_TRANSITION, LAYING, OTHER_TRANSITION, OTHER:
+		WalkState.LAYING_TRANSITION, WalkState.LAYING, WalkState.OTHER_TRANSITION, WalkState.OTHER:
 			pass
 
 	if p_instant:
 		prev_left_foot = target_left_foot
 		prev_right_foot = target_right_foot
 
-	prevHead = p_head.origin
 
 
 func is_balanced (p_left: Transform3D, p_right: Transform3D) -> bool:
