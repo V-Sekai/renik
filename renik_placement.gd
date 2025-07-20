@@ -129,7 +129,7 @@ func set_default_gaits():
 @export var dangle_ratio: float = 0.9
 @export var dangle_stiffness: float = 3
 @export var dangle_angle: float = PI / 8
-@export var dangle_follow_head: float = 0.5
+@export var dangle_follow_head: float = 0.1
 # distance between hips and head that we'll call the center of balance. 0 is at head
 @export var center_of_balance_position: float = 0.5
 @export var step_pace: float = 0.015
@@ -140,6 +140,7 @@ func set_default_gaits():
 @export var min_transition_speed: float = 0.04
 @export var rotation_threshold: float = PI / 4.0
 @export var balance_threshold: float = 0.03
+@export var laying_threshold: float = 0.5
 
 # Everything scales logarithmically
 @export var strafe_angle_limit: float = cos(deg_to_rad(30.0))
@@ -377,8 +378,9 @@ func update_placement (delta: float) -> void:
 func hip_place(p_delta: float, p_head: Transform3D,
 		p_left_foot: Transform3D, p_right_foot: Transform3D,
 		p_twist: float, p_instant: bool) -> void:
-	var left_middle: Vector3 = (p_left_foot.translated_local(Vector3(0, 0, left_foot_length / 2))).origin
-	var right_middle: Vector3 = (p_right_foot.translated_local(Vector3(0, 0, right_foot_length / 2))).origin
+
+	var left_middle: Vector3 = (p_left_foot.translated_local(p_head.basis.get_scale() * Vector3(0, 0, left_foot_length / 2))).origin
+	var right_middle: Vector3 = (p_right_foot.translated_local(p_head.basis.get_scale() * Vector3(0, 0, right_foot_length / 2))).origin
 	var left_distance: float = left_middle.distance_squared_to(p_head.origin)
 	var right_distance: float = right_middle.distance_squared_to(p_head.origin)
 	var foot_median: Vector3 = left_middle.lerp(right_middle, 0.5)
@@ -392,11 +394,11 @@ func hip_place(p_delta: float, p_head: Transform3D,
 	var hip_y: Vector3 = -foot_direction.normalized()
 	var hip_z: Vector3 = renik_helper.vector_rejection(hip_forward.normalized(), hip_y).normalized()
 	var hip_x: Vector3 = hip_y.cross(hip_z).normalized()
-	target_hip.basis = Basis(hip_x, hip_y, hip_z).orthonormalized()
+	target_hip.basis = Basis(hip_x, hip_y, hip_z).orthonormalized() # * Basis.from_scale(p_head.basis.get_scale())
 
-	var crouch_distance: float = p_head.origin.distance_to(foot) * crouch_ratio
-	var extra_hip_distance: float = hip_offset.length() - crouch_distance
-	var follow_hip_direction: Vector3 = (p_head.basis * (hip_offset)) * target_hip.basis
+	var crouch_distance: float = p_head.origin.distance_to(foot) * crouch_ratio # * scalar
+	var extra_hip_distance: float = (p_head.basis.get_scale() * hip_offset).length() - crouch_distance
+	var follow_hip_direction: Vector3 = (p_head.basis.orthonormalized() * (hip_offset)) * target_hip.basis
 	var effective_hip_direction: Vector3 = hip_offset.lerp(follow_hip_direction, hip_follow_head_influence).normalized()
 	target_hip.origin = p_head.origin
 	target_hip = target_hip.translated_local(crouch_distance * effective_hip_direction.normalized())
@@ -439,10 +441,10 @@ func foot_place(p_delta: float, p_head: Transform3D, p_world_3d: World3D, p_inst
 	var startOffset: float = ((spine_length) * -center_of_balance_position) / sqrt(2)
 	var leftStart: Vector3 = p_head.translated_local(Vector3(0, startOffset, startOffset) + left_hip_offset).origin
 	var rightStart: Vector3 = p_head.translated_local(Vector3(0, startOffset, startOffset) + right_hip_offset).origin
-	var leftStop: Vector3 = p_head.origin + Vector3(0,
+	var leftStop: Vector3 = p_head.origin + p_head.basis.get_scale() * Vector3(0,
 					(-spine_length - left_leg_length - floor_offset) * (1 + raycast_allowance) + left_hip_offset.y,
 					0) + p_head.basis * (left_hip_offset)
-	var rightStop: Vector3 = p_head.origin + Vector3(0,
+	var rightStop: Vector3 = p_head.origin + p_head.basis.get_scale() * Vector3(0,
 					(-spine_length - right_leg_length - floor_offset) * (1 + raycast_allowance) + right_hip_offset.y,
 					0) + p_head.basis * (right_hip_offset)
 
@@ -458,14 +460,14 @@ func foot_place(p_delta: float, p_head: Transform3D, p_world_3d: World3D, p_inst
 	ray_query_parameters.to = rightStop
 	var right_raycast_dict: Dictionary = dss.intersect_ray(ray_query_parameters)
 	var right_raycast := RaycastResult.new(right_raycast_dict)
-	ray_query_parameters.from = p_head.origin
-	ray_query_parameters.to = p_head.origin - Vector3(0, spine_length + floor_offset, 0)
+	ray_query_parameters.from = p_head.origin + p_head.basis.get_scale() * Vector3(0, spine_length * (1.0 + laying_threshold) / 2, 0)
+	ray_query_parameters.to = p_head.origin - p_head.basis.get_scale() * Vector3(0, spine_length * (1.0 + laying_threshold), 0)
 	var laying_raycast_dict: Dictionary = dss.intersect_ray(ray_query_parameters)
 	var laying_raycast := RaycastResult.new(laying_raycast_dict)
 
-	var left_offset: Vector3 = (leftStart - leftStop).normalized() * floor_offset * left_leg_length
-	var right_offset: Vector3 = (rightStart - rightStop).normalized() * floor_offset * right_leg_length
-	var laying_offset: Vector3 = Vector3(0, floor_offset * (left_leg_length + right_leg_length) / 2, 0)
+	var left_offset: Vector3 = p_head.basis.get_scale() * (leftStart - leftStop).normalized() * floor_offset * left_leg_length
+	var right_offset: Vector3 = p_head.basis.get_scale() * (rightStart - rightStop).normalized() * floor_offset * right_leg_length
+	var laying_offset: Vector3 = p_head.basis.get_scale() * Vector3(0, floor_offset * (left_leg_length + right_leg_length) * laying_threshold, 0)
 	left_raycast.position += left_offset
 	right_raycast.position += right_offset
 	laying_raycast.position += laying_offset
@@ -556,6 +558,7 @@ class LoopFootParams:
 	var p_prev_ground: Node3D
 	var r_loop_state: LoopState
 	var r_grounded_stop: Vector3
+	var p_step_pace: float
 
 
 func loop_foot(params: LoopFootParams,
@@ -571,14 +574,17 @@ func loop_foot(params: LoopFootParams,
 		upright_foot = Quaternion()
 
 	var ground_velocity: Vector3 = renik_helper.vector_rejection(p_velocity, p_ground_normal)
-	if ground_velocity.length() > max_threshold * step_pace:
-		ground_velocity = ground_velocity.normalized() * max_threshold * step_pace
+	if ground_velocity.length() > max_threshold * params.p_step_pace:
+		ground_velocity = ground_velocity.normalized() * max_threshold * params.p_step_pace
 
 	var loop_state_progress: float = 0
 	var state_and_progress: Vector2 = get_loop_state(p_loop_scaling, p_step_progress, p_gait)
 	params.r_loop_state = int(state_and_progress.x)
 	loop_state_progress = state_and_progress.y
 	var head_distance: float = p_head.origin.distance_to(p_ground_pos)
+	var scalar: float = (Vector3.ONE * p_head.basis.get_scale()).length() / sqrt(3)
+	p_leg_length *= scalar
+
 	var ease_scaling: float = p_loop_scaling * p_loop_scaling * p_loop_scaling * p_loop_scaling # ease the growth a little
 	var vertical_scaling: float = head_distance * ease_scaling
 	var horizontal_scaling: float = p_leg_length * ease_scaling
@@ -692,7 +698,7 @@ func loop(p_head: Transform3D, p_velocity: Vector3,
 		p_left_ground_pos: Vector3, p_left_normal: Vector3,
 		p_right_ground_pos: Vector3, p_right_normal: Vector3,
 		p_left_grounded: bool, p_right_grounded: bool, p_gait: renik_gait_class) -> void:
-	var stride_speed: float = step_pace * p_velocity.length() / ((left_leg_length + right_leg_length) / 2)
+	var stride_speed: float = loop_foot_params.p_step_pace * p_velocity.length() / ((left_leg_length + right_leg_length) / 2)
 	stride_speed = log(1 + stride_speed)
 	stride_speed = clampf(stride_speed, min_threshold, max_threshold)
 	var new_loop_scaling: float = (stride_speed - min_threshold) / (max_threshold - min_threshold) if max_threshold > min_threshold else 0.0
@@ -855,15 +861,28 @@ func foot_place_raycasts(
 	else:
 		right_velocity = renik_helper.vector_rejection(velocity, Vector3(0, 1, 0))
 
+	velocity /= p_head.basis.get_scale()
+	left_velocity /= p_head.basis.get_scale()
+	right_velocity /= p_head.basis.get_scale()
 
-	var effective_min_threshold: float = min_threshold * ((left_leg_length + right_leg_length) / 2) / step_pace
-	if (!p_left_raycast.collider && !p_right_raycast.collider && !p_laying_raycast.collider) || fall_override:
+	var scalar: float = p_head.basis.get_scale().length() / sqrt(3)
+	var p_step_pace: float = step_pace * scalar
+	loop_foot_params.p_step_pace = p_step_pace
+
+	var effective_min_threshold: float = min_threshold * ((left_leg_length + right_leg_length) / 2) / p_step_pace
+	if (!p_left_raycast.collider && !p_right_raycast.collider && !p_laying_raycast.collider && !prone_override) || fall_override:
 		# If none of the raycasts hit anything then there isn't any ground to stand on
 		walk_state = WalkState.FALLING
 		walk_transition_progress = 0
 	elif p_laying_raycast.collider || prone_override:
 		# If we're close enough for the laying raycast to trigger and we aren't
 		# already laying down transition to laying down
+		if prone_override:
+			target_right_foot.origin.y = p_head.origin.y - scalar * 0.25 * spine_length
+			target_left_foot.origin.y = p_head.origin.y - scalar * 0.25 * spine_length
+		if p_laying_raycast.position.y > target_right_foot.origin.y or p_laying_raycast.position.y > target_left_foot.origin.y:
+			target_right_foot.origin.y = p_laying_raycast.position.y
+			target_left_foot.origin.y = p_laying_raycast.position.y
 		if walk_state != WalkState.LAYING && walk_state != WalkState.LAYING_TRANSITION:
 			walk_state = WalkState.LAYING_TRANSITION
 			walk_transition_progress = laying_transition_duration # In units of loop progression
@@ -952,7 +971,7 @@ func foot_place_raycasts(
 						p_right_raycast.position, p_left_raycast.collider != null,
 						p_right_raycast.collider != null)
 
-	var stride_speed: float = step_pace * velocity.length() / ((left_leg_length + right_leg_length) / 2)
+	var stride_speed: float = p_step_pace * velocity.length() / ((left_leg_length + right_leg_length) / 2)
 	walk_transition_progress -= maxf(min_transition_speed, stride_speed)
 	walk_transition_progress = maxf(walk_transition_progress, 0.0)
 	if walk_transition_progress == 0 && walk_state < 0:
