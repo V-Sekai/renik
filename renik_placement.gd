@@ -229,7 +229,7 @@ var right_foot_id: int
 
 @export var enable_left_foot_placement: bool = true
 @export var enable_right_foot_placement: bool = true
-@export var enable_hip_placement: bool = true
+@export var enable_hip_placement: bool = false
 
 @export_group("Targets")
 
@@ -263,6 +263,7 @@ var foot_right_target_spatial: Node3D
 
 
 const foot_basis_offset: Basis = Basis(Vector3(-1, 0, 0), Vector3(0, 0, 1), Vector3(0, 1, 0))
+const foot_quat_offset: Quaternion = Quaternion(foot_basis_offset)
 
 var fall_override: bool = false
 var prone_override: bool = false
@@ -629,8 +630,8 @@ func loop_foot(params: LoopFootParams,
 					horizontal_scaling * p_gait.tip_toe_speed_scalar)
 			tip_toe_angle = p_gait.tip_toe_angle_max if tip_toe_angle > p_gait.tip_toe_angle_max else tip_toe_angle
 
-			params.r_step.basis = (grounded_foot.basis * Basis(Vector3(1, 0, 0), tip_toe_angle)).slerp(
-				lifted_foot.basis, loop_state_progress)
+			params.r_step.basis = Basis((grounded_foot.basis * Basis(Vector3(1, 0, 0), tip_toe_angle)).get_rotation_quaternion().slerp(
+				lifted_foot.basis.get_rotation_quaternion(), loop_state_progress))
 			params.r_step.origin = params.r_grounded_stop.cubic_interpolate(
 					lifted_foot.origin,
 					params.r_grounded_stop - ground_velocity * horizontal_scaling,
@@ -638,13 +639,13 @@ func loop_foot(params: LoopFootParams,
 					loop_state_progress)
 
 		LOOP_APEX_IN:
-			params.r_step.basis = lifted_foot.basis.slerp(apex_foot.basis, loop_state_progress)
+			params.r_step.basis = Basis(lifted_foot.basis.get_rotation_quaternion().slerp(apex_foot.basis.get_rotation_quaternion(), loop_state_progress))
 			params.r_step.origin = lifted_foot.origin.cubic_interpolate(
 					apex_foot.origin, lifted_foot.origin - p_ground_normal * vertical_scaling,
 					apex_foot.origin + ground_velocity * p_leg_length, loop_state_progress)
 
 		LOOP_APEX_OUT:
-			params.r_step.basis = apex_foot.basis.slerp(drop_foot.basis, loop_state_progress)
+			params.r_step.basis = Basis(apex_foot.basis.get_rotation_quaternion().slerp(drop_foot.basis.get_rotation_quaternion(), loop_state_progress))
 			params.r_step.origin = apex_foot.origin.cubic_interpolate(
 					drop_foot.origin,
 					apex_foot.origin - ground_velocity * horizontal_scaling,
@@ -652,7 +653,7 @@ func loop_foot(params: LoopFootParams,
 					loop_state_progress)
 
 		LOOP_DROP:
-			params.r_step.basis = drop_foot.basis.slerp(grounded_foot.basis, loop_state_progress)
+			params.r_step.basis = Basis(drop_foot.basis.get_rotation_quaternion().slerp(grounded_foot.basis.get_rotation_quaternion(), loop_state_progress))
 			params.r_step.origin = drop_foot.origin.cubic_interpolate(
 					grounded_foot.origin,
 					drop_foot.origin + p_ground_normal * vertical_scaling,
@@ -954,13 +955,13 @@ func foot_place_raycasts(
 			var right_dangle: Transform3D = dangle_foot(p_head, (spine_length + right_leg_length) * dangle_ratio,
 							right_leg_length, right_hip_offset)
 
-			target_left_foot.basis = target_left_foot.basis.slerp(left_dangle.basis * foot_basis_offset,
-							1.0 - (1.0 / dangle_stiffness))
+			target_left_foot.basis = Basis(target_left_foot.basis.get_rotation_quaternion().slerp(left_dangle.basis.get_rotation_quaternion() * foot_quat_offset,
+							1.0 - (1.0 / dangle_stiffness)))
 			target_left_foot.origin = renik_helper.log_clamp(
 					target_left_foot.origin, left_dangle.origin, 1.0 / dangle_stiffness)
 
-			target_right_foot.basis = target_right_foot.basis.slerp(right_dangle.basis * foot_basis_offset,
-							1.0 - (1.0 / dangle_stiffness))
+			target_right_foot.basis = Basis(target_right_foot.basis.get_rotation_quaternion().slerp(right_dangle.basis.get_rotation_quaternion() * foot_quat_offset,
+							1.0 - (1.0 / dangle_stiffness)))
 			target_right_foot.origin = renik_helper.log_clamp(
 					target_right_foot.origin, right_dangle.origin, 1.0 / dangle_stiffness)
 
@@ -981,28 +982,28 @@ func foot_place_raycasts(
 			effective_transition_progress = minf(effective_transition_progress, 1.0)
 			if left_ground != null:
 				left_stand = stand_foot(target_left_foot, left_stand_local, left_ground)
-				target_left_foot = Transform3D(left_stand.basis * foot_basis_offset, left_stand.origin).interpolate_with(
+				target_left_foot = Transform3D(left_stand.basis.get_rotation_quaternion() * foot_quat_offset, left_stand.origin).interpolate_with(
 						target_left_foot, effective_transition_progress)
 				left_grounded_stop = left_stand.origin
 			else:
 				var left_dangle: Transform3D = dangle_foot(p_head, (spine_length + left_leg_length) * dangle_ratio,
 								left_leg_length, left_hip_offset)
-				target_left_foot.basis = target_left_foot.basis.slerp(left_dangle.basis * foot_basis_offset,
-								1.0 - (1.0 / dangle_stiffness))
+				target_left_foot.basis = Basis(target_left_foot.basis.get_rotation_quaternion().slerp(left_dangle.basis.get_rotation_quaternion() * foot_quat_offset,
+								1.0 - (1.0 / dangle_stiffness)))
 				target_left_foot.origin = renik_helper.log_clamp(
 						target_left_foot.origin, left_dangle.origin, 1.0 / dangle_stiffness)
 
 
 			if right_ground != null:
 				right_stand = stand_foot(target_right_foot, right_stand_local, right_ground)
-				target_right_foot = Transform3D(right_stand.basis * foot_basis_offset, right_stand.origin).interpolate_with(
+				target_right_foot = Transform3D(right_stand.basis.get_rotation_quaternion() * foot_quat_offset, right_stand.origin).interpolate_with(
 							target_right_foot, effective_transition_progress)
 				right_grounded_stop = right_stand.origin
 			else:
 				var right_dangle: Transform3D = dangle_foot(p_head, (spine_length + right_leg_length) * dangle_ratio,
 								right_leg_length, right_hip_offset)
-				target_right_foot.basis = target_right_foot.basis.slerp(right_dangle.basis * foot_basis_offset,
-								1.0 - (1.0 / dangle_stiffness))
+				target_right_foot.basis = Basis(target_right_foot.basis.get_rotation_quaternion().slerp(right_dangle.basis.get_rotation_quaternion() * foot_quat_offset,
+								1.0 - (1.0 / dangle_stiffness)))
 				target_right_foot.origin = renik_helper.log_clamp(target_right_foot.origin, right_dangle.origin,
 								1.0 / dangle_stiffness)
 
@@ -1013,9 +1014,9 @@ func foot_place_raycasts(
 					p_right_raycast.position, p_right_raycast.normal,
 					p_left_raycast.collider != null, p_right_raycast.collider != null,
 					forward_gait)
-			target_left_foot = Transform3D(left_step.basis * foot_basis_offset, left_step.origin).interpolate_with(
+			target_left_foot = Transform3D(left_step.basis.get_rotation_quaternion() * foot_quat_offset, left_step.origin).interpolate_with(
 						target_left_foot, effective_transition_progress)
-			target_right_foot = Transform3D(right_step.basis * foot_basis_offset, right_step.origin).interpolate_with(
+			target_right_foot = Transform3D(right_step.basis.get_rotation_quaternion() * foot_quat_offset, right_step.origin).interpolate_with(
 						target_right_foot, effective_transition_progress)
 
 		BACKSTEPPING_TRANSITION, BACKSTEPPING:
@@ -1025,9 +1026,9 @@ func foot_place_raycasts(
 					p_right_raycast.position, p_right_raycast.normal,
 					p_left_raycast.collider != null, p_right_raycast.collider != null,
 					backward_gait)
-			target_left_foot = Transform3D(left_step.basis * foot_basis_offset, left_step.origin).interpolate_with(
+			target_left_foot = Transform3D(left_step.basis.get_rotation_quaternion() * foot_quat_offset, left_step.origin).interpolate_with(
 							target_left_foot, effective_transition_progress)
-			target_right_foot = Transform3D(right_step.basis * foot_basis_offset, right_step.origin).interpolate_with(
+			target_right_foot = Transform3D(right_step.basis.get_rotation_quaternion() * foot_quat_offset, right_step.origin).interpolate_with(
 							target_right_foot, effective_transition_progress)
 
 		STRAFING_TRANSITION, STRAFING:
@@ -1037,9 +1038,9 @@ func foot_place_raycasts(
 					p_right_raycast.position, p_right_raycast.normal,
 					p_left_raycast.collider != null, p_right_raycast.collider != null,
 					sideways_gait)
-			target_left_foot = Transform3D(left_step.basis * foot_basis_offset, left_step.origin).interpolate_with(
+			target_left_foot = Transform3D(left_step.basis.get_rotation_quaternion() * foot_quat_offset, left_step.origin).interpolate_with(
 						target_left_foot, effective_transition_progress)
-			target_right_foot = Transform3D(right_step.basis * foot_basis_offset, right_step.origin).interpolate_with(
+			target_right_foot = Transform3D(right_step.basis.get_rotation_quaternion() * foot_quat_offset, right_step.origin).interpolate_with(
 						target_right_foot, effective_transition_progress)
 
 		LAYING_TRANSITION, LAYING, OTHER_TRANSITION, OTHER:
