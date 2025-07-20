@@ -39,6 +39,8 @@ var lower_extra_bone_ids: PackedInt32Array
 var leaf_id: int = -1
 var lower_id: int = -1
 var upper_id: int = -1
+var dynamic_pole_root_id: int = -1
+var dynamic_pole_head_id: int = -1
 
 const LEFT_HAND = 0
 const RIGHT_HAND = 1
@@ -52,6 +54,7 @@ const CUSTOM = 4
 		leaf_id = -1
 		lower_id = -1
 		upper_id = -1
+		dynamic_pole_root_id = -1
 		mirror_factor = (-1 if mirror else 1)
 
 @export_tool_button("Assign Arm Defaults") var assign_arm_defaults: Callable:
@@ -60,7 +63,7 @@ const CUSTOM = 4
 			upper_twist_offset = -0.5*PI
 			lower_twist_offset = -0.5*PI
 			roll_offset = deg_to_rad(-120.0)
-			upper_limb_twist = 0.25
+			upper_limb_twist = 0.5
 			lower_limb_twist = 0.66666
 			twist_inflection_point_offset = deg_to_rad(180.0)
 			twist_overflow = deg_to_rad(45.0)
@@ -150,7 +153,7 @@ var mirror_factor: float = 1
 @export_range(-180.0, 180.0, 0.1, "radians") var upper_twist_offset: float = -0.5*PI
 @export_range(-180.0, 180.0, 0.1, "radians") var lower_twist_offset: float = -0.5*PI
 @export_range(-180.0, 180.0, 0.1, "radians") var roll_offset: float = deg_to_rad(-120.0) # Rolls the entire limb so the joint points in a different direction.
-@export_range(0,1,0.001) var upper_limb_twist: float = 0.25 # How much the upper limb follows the lower limb.
+@export_range(0,1,0.001) var upper_limb_twist: float = 0.5 # How much the upper limb follows the lower limb.
 @export_range(0,1,0.001) var lower_limb_twist: float = 0.66666 # How much the lower limb follows the leaf limb.
 @export_range(-180.0, 180.0, 0.1, "radians") var twist_inflection_point_offset: float = deg_to_rad(180.0) # When the limb snaps from twisting in the positive direction to twisting in the negative direction.
 @export_range(0.0, 180.0, 0.1, "radians") var twist_overflow: float = deg_to_rad(45.0) # How much past the inflection point we go before snapping.
@@ -180,6 +183,37 @@ var overflow_state: int = 0 # 0 means no twist overflow. -1 means underflow. 1 m
 #@export_range(-180,180,0.1,"radians")
 @export var arm_shoulder_pole_offset: Quaternion = Quaternion.from_euler(Vector3(0,0,deg_to_rad(-78.0)))
 
+
+@export var dynamic_pole_root_bone: StringName:
+	set(x):
+		dynamic_pole_root_bone = x
+		dynamic_pole_root_id = -1
+	get:
+		match preset:
+			0, 1:
+				return &"Hips"
+			2, 3:
+				return &""
+			_:
+				return dynamic_pole_root_bone
+
+@export var dynamic_pole_head_bone: StringName:
+	set(x):
+		dynamic_pole_head_bone = x
+		dynamic_pole_head_id = -1
+	get:
+		match preset:
+			0, 1:
+				return &"Head"
+			2, 3:
+				return &""
+			_:
+				return dynamic_pole_head_bone
+
+@export var dynamic_pole_spine_length: float = 0.7
+@export var dynamic_pole_min: float = 0.0
+@export var dynamic_pole_max: float = 0.4
+@export var dynamic_pole_power: float = 1.0
 
 @export var pole_target: Node3D
 
@@ -533,6 +567,10 @@ func update_bones() -> void:
 			leaf = Transform3D(Basis(), skeleton.get_bone_rest(leaf_id).origin)
 			lower = Transform3D(Basis(), skeleton.get_bone_rest(lower_id).origin)
 			upper = Transform3D(Basis(), skeleton.get_bone_rest(upper_id).origin)
+	if skeleton != null and dynamic_pole_root_id == -1 and not dynamic_pole_root_bone.is_empty():
+		dynamic_pole_root_id = skeleton.find_bone(dynamic_pole_root_bone)
+	if skeleton != null and dynamic_pole_head_id == -1 and not dynamic_pole_head_bone.is_empty():
+		dynamic_pole_head_id = skeleton.find_bone(dynamic_pole_head_bone)
 
 
 func is_valid() -> bool:
@@ -579,8 +617,23 @@ func _process_modification() -> void:
 		has_pole = true
 
 	if (target && target.visible && skeleton && is_valid_in_skeleton(skeleton)):
-		var joint_axis: Vector3 = get_joint_axis(global_parent, target_transform, has_pole, target_pole)
+		if not has_pole and dynamic_pole_root_id != -1 and dynamic_pole_head_id != -1:
+			var global_pole_root: Transform3D = skeleton.get_bone_global_pose(dynamic_pole_root_id)
+			var global_pole_head: Transform3D = skeleton.get_bone_global_pose(dynamic_pole_head_id)
+			has_pole = true
+			var arm_pole_length := (leaf.origin.length() + lower.origin.length()) * 2
+			var up_direction: Vector3 = (global_pole_head.origin - global_pole_root.origin).normalized()
+			var forward_direction: Vector3 = (global_pole_root.basis * Vector3.FORWARD).slerp(global_pole_head.basis * Vector3.FORWARD, 0.3).normalized()
+			var right_direction: Vector3 = (up_direction.cross(forward_direction) + forward_direction * 0.001).normalized()
+			var spine_basis := Basis(right_direction, up_direction, forward_direction).orthonormalized()
+			var arm_midpoint: Vector3 = target_transform.origin.lerp(global_parent.origin, 0.5)
+			var vec_factor: float = (target_transform.origin - global_parent.origin).normalized().dot(target_transform.basis * Vector3(0,0,1))
+			vec_factor = dynamic_pole_spine_length * smoothstep(dynamic_pole_min, dynamic_pole_max, sign(vec_factor) * pow(vec_factor, dynamic_pole_power))
+			var vec1: Vector3 = 0.5 * arm_pole_length * (spine_basis * Vector3(mirror_factor * -2.0,0.0,2)).normalized() # Vector3(0,1,0)
+			var vec2: Vector3 = arm_pole_length * (spine_basis * Vector3(mirror_factor * -2.0,1.0,-2)).normalized() #target_pole.normalized()
+			target_pole = (global_pole_root.origin * 2 - global_pole_head.origin + vec1).lerp(global_pole_head.origin + vec2, vec_factor)
 
+		var joint_axis: Vector3 = get_joint_axis(global_parent, target_transform, has_pole, target_pole)
 		var root: Transform3D = global_parent
 		if has_shoulder:
 			var rootBone: int = skeleton.get_bone_parent(upper_id)
