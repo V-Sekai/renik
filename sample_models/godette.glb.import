@@ -4,20 +4,22 @@ importer="scene"
 importer_version=1
 type="PackedScene"
 uid="uid://cox0bfdddkll3"
-path="res://.godot/imported/godette.glb-d2a5067d66e2b6ed3bcf676ca8d363da.scn"
+path="res://.godot/imported/godette.glb-a1322cddfaa47b35187b0fd9d52b918d.scn"
 
 [deps]
 
-source_file="res://addons/renik2/sample_models/godette.glb"
-dest_files=["res://.godot/imported/godette.glb-d2a5067d66e2b6ed3bcf676ca8d363da.scn"]
+source_file="res://addons/renik/sample_models/godette.glb"
+dest_files=["res://.godot/imported/godette.glb-a1322cddfaa47b35187b0fd9d52b918d.scn"]
 
 [params]
 
 nodes/root_type=""
 nodes/root_name=""
+nodes/root_script=null
 nodes/apply_root_scale=true
 nodes/root_scale=1.0
 nodes/import_as_skeleton_bones=false
+nodes/use_name_suffixes=true
 nodes/use_node_type_suffixes=true
 meshes/ensure_tangents=true
 meshes/generate_lods=true
@@ -32,6 +34,9 @@ animation/trimming=false
 animation/remove_immutable_tracks=true
 animation/import_rest_as_RESET=false
 import_script/path=""
+materials/extract=0
+materials/extract_format=0
+materials/extract_path=""
 _subresources={
 "meshes": {
 "godette_Body": {
@@ -40,6 +45,7 @@ _subresources={
 "generate/shadow_meshes": 1,
 "lods/normal_merge_angle": 60.0,
 "save_to_file/enabled": false,
+"save_to_file/fallback_path": "",
 "save_to_file/path": ""
 }
 },

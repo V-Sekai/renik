@@ -1,6 +1,6 @@
 [gd_scene load_steps=27 format=3 uid="uid://08a3p8axfj1n"]
 
-[ext_resource type="PackedScene" uid="uid://dw41us8jqfwo1" path="res://addons/renik/sample_models/Godette_vrm_v4.vrm" id="1_qnhp5"]
+[ext_resource type="PackedScene" uid="uid://cox0bfdddkll3" path="res://addons/renik/sample_models/godette.glb" id="1_qnhp5"]
 [ext_resource type="Script" uid="uid://dp4omwn1vbm1f" path="res://addons/vrm/vrm_spring_bone.gd" id="2_i74im"]
 [ext_resource type="Script" uid="uid://cbl72623cko0k" path="res://addons/renik/renik_placement.gd" id="3_slfov"]
 [ext_resource type="Script" uid="uid://3wvx24u740ys" path="res://addons/vrm/vrm_collider_group.gd" id="3_ytbvn"]
@@ -314,12 +314,12 @@ size = Vector3(10, 0, 10)
 
 [node name="test_rig" type="Node3D"]
 
-[node name="Godette_vrm_v4" parent="." instance=ExtResource("1_qnhp5")]
+[node name="ReplaceWithYourModel" parent="." instance=ExtResource("1_qnhp5")]
 spring_bones = Array[ExtResource("2_i74im")]([SubResource("Resource_8k8fr"), SubResource("Resource_j8kq8"), SubResource("Resource_i1euc"), SubResource("Resource_hlu28"), SubResource("Resource_oaa0c"), SubResource("Resource_gtxqm"), SubResource("Resource_kdqtn"), SubResource("Resource_4nc7n")])
 collider_groups = Array[ExtResource("3_ytbvn")]([SubResource("Resource_cvyfe"), SubResource("Resource_t846x")])
 collider_library = Array[ExtResource("4_5g6m6")]([SubResource("Resource_aydfj"), SubResource("Resource_6i5jf"), SubResource("Resource_vlhjk"), SubResource("Resource_ewyme")])
 
-[node name="GeneralSkeleton" parent="Godette_vrm_v4" index="0"]
+[node name="%GeneralSkeleton" parent="ReplaceWithYourModel" index="0"]
 bones/1/position = Vector3(-7.16312e-09, 0.597844, 0.0420817)
 bones/2/rotation = Quaternion(-0.00524529, 0, -3.24421e-09, 0.999986)
 bones/3/rotation = Quaternion(-0.0155223, 0, 3.79901e-10, 0.99988)
@@ -344,10 +344,10 @@ bones/65/rotation = Quaternion(6.53237e-10, 1, -0.000226315, -2.27138e-06)
 bones/66/rotation = Quaternion(-7.16716e-06, -0.70437, 0.709833, -8.40055e-08)
 bones/67/rotation = Quaternion(-7.17574e-06, -0.704455, 0.709748, -8.05611e-08)
 
-[node name="Head" parent="Godette_vrm_v4/GeneralSkeleton" index="3"]
+[node name="Head" parent="ReplaceWithYourModel/%GeneralSkeleton" index="3"]
 transform = Transform3D(1, -2.66454e-15, 4.44089e-16, 1.77636e-15, 1, -2.98023e-08, -8.88178e-16, 2.98023e-08, 1, -3.86749e-09, 0.979287, -0.0151441)
 
-[node name="RenIKSpineModifier3D" type="SkeletonModifier3D" parent="Godette_vrm_v4/GeneralSkeleton" index="4" node_paths=PackedStringArray("head_target", "hip_target")]
+[node name="RenIKSpineModifier3D" type="SkeletonModifier3D" parent="ReplaceWithYourModel/%GeneralSkeleton" index="4" node_paths=PackedStringArray("head_target", "hip_target")]
 _import_path = NodePath("")
 unique_name_in_owner = false
 process_mode = 0
@@ -370,13 +370,13 @@ head_target = NodePath("HeadTarget")
 hip_target = NodePath("HipsTarget")
 metadata/_custom_type_script = "uid://cqeoidnhsn75e"
 
-[node name="HipsTarget" type="Marker3D" parent="Godette_vrm_v4/GeneralSkeleton/RenIKSpineModifier3D"]
+[node name="HipsTarget" type="Marker3D" parent="ReplaceWithYourModel/%GeneralSkeleton/RenIKSpineModifier3D"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.645653, 0.031926)
 
-[node name="HeadTarget" type="Marker3D" parent="Godette_vrm_v4/GeneralSkeleton/RenIKSpineModifier3D"]
+[node name="HeadTarget" type="Marker3D" parent="ReplaceWithYourModel/%GeneralSkeleton/RenIKSpineModifier3D"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.944517, 0.01)
 
-[node name="LeftHandRenIKLimbModifier3D" type="SkeletonModifier3D" parent="Godette_vrm_v4/GeneralSkeleton" index="5" node_paths=PackedStringArray("target")]
+[node name="LeftHandRenIKLimbModifier3D" type="SkeletonModifier3D" parent="ReplaceWithYourModel/%GeneralSkeleton" index="5" node_paths=PackedStringArray("target")]
 _import_path = NodePath("")
 unique_name_in_owner = false
 process_mode = 0
@@ -403,10 +403,10 @@ arm_shoulder_pole_offset = Quaternion(0, 0, -0.62932, 0.777146)
 target = NodePath("LeftHandTarget")
 metadata/_custom_type_script = "uid://chslcw2ar6ueo"
 
-[node name="LeftHandTarget" type="Marker3D" parent="Godette_vrm_v4/GeneralSkeleton/LeftHandRenIKLimbModifier3D"]
+[node name="LeftHandTarget" type="Marker3D" parent="ReplaceWithYourModel/%GeneralSkeleton/LeftHandRenIKLimbModifier3D"]
 transform = Transform3D(1, 0, -2.98023e-08, 0, 1, 0, 0, 0, 1, 0, 0, 0)
 
-[node name="RightHandRenIKLimbModifier3D" type="SkeletonModifier3D" parent="Godette_vrm_v4/GeneralSkeleton" index="6" node_paths=PackedStringArray("target")]
+[node name="RightHandRenIKLimbModifier3D" type="SkeletonModifier3D" parent="ReplaceWithYourModel/%GeneralSkeleton" index="6" node_paths=PackedStringArray("target")]
 _import_path = NodePath("")
 unique_name_in_owner = false
 process_mode = 0
@@ -435,9 +435,9 @@ arm_shoulder_pole_offset = Quaternion(0, 0, -0.62932, 0.777146)
 target = NodePath("RightHandTarget")
 metadata/_custom_type_script = "uid://chslcw2ar6ueo"
 
-[node name="RightHandTarget" type="Marker3D" parent="Godette_vrm_v4/GeneralSkeleton/RightHandRenIKLimbModifier3D"]
+[node name="RightHandTarget" type="Marker3D" parent="ReplaceWithYourModel/%GeneralSkeleton/RightHandRenIKLimbModifier3D"]
 
-[node name="LeftFootRenIKLimbModifier3D" type="SkeletonModifier3D" parent="Godette_vrm_v4/GeneralSkeleton" index="7" node_paths=PackedStringArray("target")]
+[node name="LeftFootRenIKLimbModifier3D" type="SkeletonModifier3D" parent="ReplaceWithYourModel/%GeneralSkeleton" index="7" node_paths=PackedStringArray("target")]
 _import_path = NodePath("")
 unique_name_in_owner = false
 process_mode = 0
@@ -473,9 +473,9 @@ arm_shoulder_pole_offset = Quaternion(0, 0, -0.62932, 0.777146)
 target = NodePath("LeftFootTarget")
 metadata/_custom_type_script = "uid://chslcw2ar6ueo"
 
-[node name="LeftFootTarget" type="Marker3D" parent="Godette_vrm_v4/GeneralSkeleton/LeftFootRenIKLimbModifier3D"]
+[node name="LeftFootTarget" type="Marker3D" parent="ReplaceWithYourModel/%GeneralSkeleton/LeftFootRenIKLimbModifier3D"]
 
-[node name="RightFootRenIKLimbModifier3D" type="SkeletonModifier3D" parent="Godette_vrm_v4/GeneralSkeleton" index="8" node_paths=PackedStringArray("target")]
+[node name="RightFootRenIKLimbModifier3D" type="SkeletonModifier3D" parent="ReplaceWithYourModel/%GeneralSkeleton" index="8" node_paths=PackedStringArray("target")]
 _import_path = NodePath("")
 unique_name_in_owner = false
 process_mode = 0
@@ -512,21 +512,18 @@ arm_shoulder_pole_offset = Quaternion(0, 0, -0.62932, 0.777146)
 target = NodePath("RightFootTarget")
 metadata/_custom_type_script = "uid://chslcw2ar6ueo"
 
-[node name="RightFootTarget" type="Marker3D" parent="Godette_vrm_v4/GeneralSkeleton/RightFootRenIKLimbModifier3D"]
+[node name="RightFootTarget" type="Marker3D" parent="ReplaceWithYourModel/%GeneralSkeleton/RightFootRenIKLimbModifier3D"]
 
-[node name="ArmTwistIndicator" type="BoneAttachment3D" parent="Godette_vrm_v4/GeneralSkeleton" index="9"]
+[node name="ArmTwistIndicator" type="BoneAttachment3D" parent="ReplaceWithYourModel/%GeneralSkeleton" index="9"]
 transform = Transform3D(0.0288815, 0.648151, -0.760964, 0.348401, -0.72007, -0.600097, -0.936901, -0.247789, -0.246613, 0.121515, 0.930472, -0.0678677)
 bone_name = "LeftUpperArm"
 bone_idx = 25
 
-[node name="secondary" parent="Godette_vrm_v4" index="1"]
+[node name="secondary" parent="ReplaceWithYourModel" index="1"]
 collider_groups = Array[ExtResource("3_ytbvn")]([SubResource("Resource_cvyfe"), SubResource("Resource_t846x")])
 collider_library = Array[ExtResource("4_5g6m6")]([SubResource("Resource_aydfj"), SubResource("Resource_6i5jf"), SubResource("Resource_vlhjk"), SubResource("Resource_ewyme")])
 
-[node name="LogicContainer" type="Node3D" parent="."]
-transform = Transform3D(0.898533, 0.432097, -0.077013, -0.433652, 0.84693, -0.307663, -0.067716, 0.309842, 0.948374, 0, 0, 0)
-
-[node name="RenIKFootPlacement" type="Node3D" parent="LogicContainer"]
+[node name="RenIKFootPlacement" type="Node3D" parent="ReplaceWithYourModel/%GeneralSkeleton"]
 transform = Transform3D(1, 1.11759e-08, 0, -6.70552e-08, 1, 0, -7.45058e-09, 0, 1, 0, 0, 0)
 script = ExtResource("3_slfov")
 live_preview = true
@@ -539,17 +536,17 @@ right_leg_length = 0.434713
 hip_offset = Vector3(3.84637e-09, -0.33806, 0.0214016)
 left_hip_offset = Vector3(0.109996, -0.149882, -0.0477961)
 right_hip_offset = Vector3(-0.109996, -0.149882, -0.047796)
-armature_skeleton_path = NodePath("../../Godette_vrm_v4/GeneralSkeleton")
+armature_skeleton_path = NodePath("..")
 enable_left_foot_placement = false
 enable_right_foot_placement = false
-armature_head_target = NodePath("../../Godette_vrm_v4/GeneralSkeleton/RenIKSpineModifier3D/HeadTarget")
-armature_hip_target = NodePath("../../Godette_vrm_v4/GeneralSkeleton/RenIKSpineModifier3D/HipsTarget")
-armature_left_foot_target = NodePath("../../Godette_vrm_v4/GeneralSkeleton/LeftFootRenIKLimbModifier3D")
-armature_right_foot_target = NodePath("../../Godette_vrm_v4/GeneralSkeleton/RightFootRenIKLimbModifier3D")
+armature_head_target = NodePath("../RenIKSpineModifier3D/HeadTarget")
+armature_hip_target = NodePath("../RenIKSpineModifier3D/HipsTarget")
+armature_left_foot_target = NodePath("../LeftFootRenIKLimbModifier3D")
+armature_right_foot_target = NodePath("../RightFootRenIKLimbModifier3D")
 
 [node name="StaticBody3D" type="StaticBody3D" parent="."]
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="StaticBody3D"]
 shape = SubResource("BoxShape3D_itlrt")
 
-[editable path="Godette_vrm_v4"]
+[editable path="ReplaceWithYourModel"]
