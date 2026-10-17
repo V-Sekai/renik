@@ -77,7 +77,7 @@ enum LoopState {
 
 func set_default_gaits():
 	if forward_gait == null:
-		forward_gait = renik_gait_class.new(
+		forward_gait = renik_gait_class.new_with_defaults(
 				1, 0.5 # speed min speed max
 				,
 				5, 10, 5, 10, 5, 5, 5, 5,
@@ -98,13 +98,13 @@ func set_default_gaits():
 				0.05, 0.4, 0.85) # contact ease, ease scalar, and scaling ease
 		forward_gait.resource_name = "ForwardGait"
 	if backward_gait == null:
-		backward_gait = renik_gait_class.new(
+		backward_gait = renik_gait_class.new_with_defaults(
 				0.5, 0.75, 5, 5, 5, 10, 5, 10, 5, 5, 5, 0, 0, 0, 0.025, 0.1, 0.33,
 				PI / -8, 0.1, 0.1, PI / 8, 0.0, 0.1, 0.25, PI / 8,
 				0.1, 0.4, 0.85)
 		backward_gait.resource_name = "BackwardGait"
 	if sideways_gait == null:
-		sideways_gait = renik_gait_class.new(
+		sideways_gait = renik_gait_class.new_with_defaults(
 				0.75, 0.75, 10, 5, 5, 10, 5, 10, 5, 5, 5, 0, 0, 0, 0.05, 0.05, 0.2,
 				0.0, 0.01, 0.1, PI / 8, 0.01, 0.05, 0.25, 0.0, 0.1, 0.4, 0.85)
 		sideways_gait.resource_name = "SidewaysGait"

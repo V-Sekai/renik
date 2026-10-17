@@ -63,7 +63,7 @@ extends Resource
 @export_range(0,1,0.001) var contact_point_ease_scalar: float = 0.4
 @export_range(0,1,0.001) var scaling_ease: float = 0.9
 
-func _init(p_speed_min_scalar: float, p_speed_max_scalar: float,
+static func new_with_defaults(p_speed_min_scalar: float, p_speed_max_scalar: float,
 		p_ground_time_min: float, p_lift_time_base: float,
 		p_lift_time_scalar: float, p_apex_in_time_base: float,
 		p_apex_in_time_scalar: float, p_apex_out_time_base: float,
@@ -76,32 +76,34 @@ func _init(p_speed_min_scalar: float, p_speed_max_scalar: float,
 		p_drop_vertical: float, p_drop_vertical_scalar: float,
 		p_drop_horizontal_scalar: float, p_drop_angle: float,
 		p_contact_point_ease: float, p_contact_point_ease_scalar: float,
-		p_scaling_ease: float):
-	speed_scalar_min = p_speed_min_scalar
-	speed_scalar_max = p_speed_max_scalar
-	ground_time = p_ground_time_min
-	lift_time_base = p_lift_time_base
-	lift_time_scalar = p_lift_time_scalar
-	apex_in_time_base = p_apex_in_time_base
-	apex_in_time_scalar = p_apex_in_time_scalar
-	apex_out_time_base = p_apex_out_time_base
-	apex_out_time_scalar = p_apex_out_time_scalar
-	drop_time_base = p_drop_time_base
-	drop_time_scalar = p_drop_time_scalar
-	tip_toe_distance_scalar = p_tip_toe_distance_scalar
-	tip_toe_speed_scalar = p_tip_toe_speed_scalar
-	tip_toe_angle_max = p_tip_toe_angle_max
-	lift_vertical = p_lift_vertical
-	lift_vertical_scalar = p_lift_vertical_scalar
-	lift_horizontal_scalar = p_lift_horizontal_scalar
-	lift_angle = p_lift_angle
-	apex_vertical = p_apex_vertical
-	apex_vertical_scalar = p_apex_vertical_scalar
-	apex_angle = p_apex_angle
-	drop_vertical = p_drop_vertical
-	drop_vertical_scalar = p_drop_vertical_scalar
-	drop_horizontal_scalar = p_drop_horizontal_scalar
-	drop_angle = p_drop_angle
-	contact_point_ease = p_contact_point_ease
-	contact_point_ease_scalar = p_contact_point_ease_scalar
-	scaling_ease = p_scaling_ease
+		p_scaling_ease: float) -> RenIKGait:
+	var r := RenIKGait.new()
+	r.speed_scalar_min = p_speed_min_scalar
+	r.speed_scalar_max = p_speed_max_scalar
+	r.ground_time = p_ground_time_min
+	r.lift_time_base = p_lift_time_base
+	r.lift_time_scalar = p_lift_time_scalar
+	r.apex_in_time_base = p_apex_in_time_base
+	r.apex_in_time_scalar = p_apex_in_time_scalar
+	r.apex_out_time_base = p_apex_out_time_base
+	r.apex_out_time_scalar = p_apex_out_time_scalar
+	r.drop_time_base = p_drop_time_base
+	r.drop_time_scalar = p_drop_time_scalar
+	r.tip_toe_distance_scalar = p_tip_toe_distance_scalar
+	r.tip_toe_speed_scalar = p_tip_toe_speed_scalar
+	r.tip_toe_angle_max = p_tip_toe_angle_max
+	r.lift_vertical = p_lift_vertical
+	r.lift_vertical_scalar = p_lift_vertical_scalar
+	r.lift_horizontal_scalar = p_lift_horizontal_scalar
+	r.lift_angle = p_lift_angle
+	r.apex_vertical = p_apex_vertical
+	r.apex_vertical_scalar = p_apex_vertical_scalar
+	r.apex_angle = p_apex_angle
+	r.drop_vertical = p_drop_vertical
+	r.drop_vertical_scalar = p_drop_vertical_scalar
+	r.drop_horizontal_scalar = p_drop_horizontal_scalar
+	r.drop_angle = p_drop_angle
+	r.contact_point_ease = p_contact_point_ease
+	r.contact_point_ease_scalar = p_contact_point_ease_scalar
+	r.scaling_ease = p_scaling_ease
+	return r
